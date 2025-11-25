@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_stats"
+        android:contentDescription="Statistics"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:title="Statistics"
+        app:showAsAction="always" />
+
+    <!-- 가운데는 비워둠 (FAB가 들어갈 자리) -->
+    <item
+        android:id="@+id/home_page"
+        android:enabled="false"
+        android:icon="@drawable/home"
+        android:title="Home"
+        app:showAsAction="always" />
+
+    <!-- 오른쪽: 프로필 -->
+    <item
+        android:id="@+id/menu_profile"
+        android:contentDescription="Profile"
+        android:icon="@drawable/img"
+        android:title="MY"
+        app:showAsAction="always" />
+
+</menu>
