@@ -12,14 +12,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HabitMood">
 
+
         <activity
-            android:name=".HabitAdaptor"
-            android:exported="false" />
-        <activity
-            android:name=".HabitdataManager"
-            android:exported="false" />
-        <activity
-            android:name=".Habit"
+            android:name=".AddHabitActivity"
+            android:theme="@style/Theme.HabitMood.Dialog"
             android:exported="false" />
         <activity
             android:name=".Home"

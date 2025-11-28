@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="100dp"> <!-- 하단 바에 가려지지 않도록 여백 -->
+        android:paddingBottom="100dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -19,7 +19,7 @@
             android:orientation="vertical"
             android:padding="32dp">
 
-            <!-- 1. 헤더: 날짜 및 인사말 -->
+            <!--헤더: 날짜 및 인사말 -->
             <TextView
                 android:id="@+id/tvDate"
                 android:layout_width="wrap_content"
@@ -34,12 +34,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Hello, User 👋"
+                android:fontFamily="@font/comfortaa"
                 android:textSize="28sp"
                 android:textStyle="bold"
                 android:textColor="@color/black"
                 android:layout_marginBottom="24dp"/>
 
-            <!-- 2. 기분 트래커 카드 (현대적인 둥근 카드 스타일) -->
+            <!-- 기분 트래커 카드 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -71,7 +72,7 @@
                         android:orientation="horizontal"
                         android:gravity="center">
 
-                        <!-- 기분 버튼들 (커스텀 뷰 대신 간단한 버튼으로 표현) -->
+                        <!-- 기분 버튼 -->
                         <TextView
                             android:id="@+id/btnMoodBad"
                             android:layout_width="0dp"
@@ -139,12 +140,12 @@
                         android:text="@string/select_a_mood"
                         android:gravity="center"
                         android:textSize="12sp"
-                        android:textColor="#9E9E9E"
+                        android:textColor="@color/gray"
                         android:layout_marginTop="8dp"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 3. 습관 리스트 섹션 -->
+            <!-- 습관 리스트 섹션 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -159,7 +160,7 @@
                     android:text="Habits"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="@color/black"/> <!-- @color/gray 대신 Hex code 사용 -->
+                    android:textColor="@color/black"/>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -184,12 +185,11 @@
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddHabit"
-        android:layout_width="50.dp"
-        android:layout_height="50.dp"
-
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="120dp"
         android:contentDescription="Add Habit"
         app:backgroundTint="@color/white"
         app:fabSize="normal"
@@ -197,7 +197,7 @@
         app:tint="@color/green" />
 
 
-    <!-- 4. 하단 바 (Bottom App Bar) -->
+    <!-- 하단 바-->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
