@@ -7,8 +7,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.EditText
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 
 class SignUp : AppCompatActivity() {
+    private lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
@@ -20,6 +25,8 @@ class SignUp : AppCompatActivity() {
         val emailField = findViewById<EditText>(R.id.emailFieldSignUp)
         val passwordField = findViewById<EditText>(R.id.passwordFieldSignUp)
         val confirmPasswordField = findViewById<EditText>(R.id.confirmPasswordField)
+        auth = FirebaseAuth.getInstance()
+
 
 
         btnBack.setOnClickListener {
@@ -42,15 +49,28 @@ class SignUp : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
-            prefs.edit()
-                .putString("name", name)
-                .putString("email", email)
-                .putString("password", password)
-                .apply()
-            // 회원가입 로직 처리 (Firebase 등 연동 시 이곳에 작성)
-            Toast.makeText(this, "Account Created!", Toast.LENGTH_SHORT).show()
-            finish() // 가입 후 로그인 화면으로 돌아가기
+            auth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener { result ->
+                    val user = result.user
+                    if (user != null) {
+                        val profileUpdate = com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                            .setDisplayName(name)
+                            .build()
+                        user.updateProfile(profileUpdate)
+                    }
+
+                    Toast.makeText(this, "Account created!", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                .addOnFailureListener { e ->
+                    val msg = when (e) {
+                        is FirebaseAuthWeakPasswordException -> "Password too weak (min 6 chars recommended)"
+                        is FirebaseAuthUserCollisionException -> "This email is already registered"
+                        is FirebaseAuthInvalidCredentialsException -> "Invalid email format"
+                        else -> "Sign up failed: ${e.localizedMessage}"
+                    }
+                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+                }
         }
 
         tvGoToLogin.setOnClickListener {

@@ -10,9 +10,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.widget.Toast
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.FirebaseNetworkException
 
 
 class Login : AppCompatActivity() {
+    private lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -22,6 +27,14 @@ class Login : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        auth = FirebaseAuth.getInstance()
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            startActivity(Intent(this, Home::class.java))
+            finish()
+            return
+        }
+
 
         // email_icon resize
         val emailField = findViewById<EditText>(R.id.emailField)
@@ -48,23 +61,24 @@ class Login : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
-            val savedEmail = prefs.getString("email", null)
-            val savedPassword = prefs.getString("password", null)
-
-            if (savedEmail == null || savedPassword == null) {
-                Toast.makeText(this, "No account found. Please sign up first.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            if (inputEmail == savedEmail && inputPassword == savedPassword) {
-                val intent = Intent(this, Home::class.java)
-                startActivity(intent)
-                finish()
-            } else {
-                Toast.makeText(this, "Wrong email or password", Toast.LENGTH_SHORT).show()
-            }
+            auth.signInWithEmailAndPassword(inputEmail, inputPassword)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, Home::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+                .addOnFailureListener { e ->
+                    val msg = when (e) {
+                        is FirebaseAuthInvalidUserException -> "No account found for this email"
+                        is FirebaseAuthInvalidCredentialsException -> "Wrong password or invalid email"
+                        is FirebaseNetworkException -> "Network error, please check your connection"
+                        else -> "Login failed: ${e.localizedMessage}"
+                    }
+                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+                }
         }
+
 
         val signupBtn = findViewById<Button>(R.id.signupButton)
         signupBtn.setOnClickListener {

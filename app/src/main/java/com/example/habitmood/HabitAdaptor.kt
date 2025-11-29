@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import androidx.appcompat.app.AlertDialog
 
-class HabitAdapter(private val habitList: MutableList<String>,private val onDelete: (Int) -> Unit) :
+class HabitAdapter(private val habitList: MutableList<Habit>,private val onDelete: (Int) -> Unit) :
     RecyclerView.Adapter<HabitAdapter.HabitViewHolder>() {
 
     // 각 습관의 체크 상태와 누적 일수를 저장 (임시)
@@ -32,7 +32,8 @@ class HabitAdapter(private val habitList: MutableList<String>,private val onDele
     }
 
     override fun onBindViewHolder(holder: HabitViewHolder, position: Int) {
-        val habitName = habitList[position]
+        val habit = habitList[position]
+        val habitName = habit.name
         val isChecked = checkedStates[position] ?: false
         val streak = streakDays[position] ?: 0
 
