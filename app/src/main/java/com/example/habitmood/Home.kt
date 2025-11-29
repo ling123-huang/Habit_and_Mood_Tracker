@@ -1,5 +1,6 @@
 package com.example.habitmood
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -20,6 +21,10 @@ class Home: AppCompatActivity() {
     // 초기 습관 목록(일시적)
     private val habitList = mutableListOf("Water Drinking", "Walking", "Meditation")
 
+    companion object {
+        private const val REQUEST_ADD_HABIT = 1001
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -30,14 +35,19 @@ class Home: AppCompatActivity() {
 
         setCurrentDate()
 
-        habitAdapter = HabitAdapter(habitList)
+        habitAdapter = HabitAdapter(habitList) { position ->
+            if (position in habitList.indices) {
+                habitList.removeAt(position)
+                habitAdapter.notifyItemRemoved(position)
+            }
+        }
         habitRecyclerView.layoutManager = LinearLayoutManager(this)
         habitRecyclerView.adapter = habitAdapter
 
         fabAddHabit.setOnClickListener {
             // AddHabitActivity로 이동
             val intent = Intent(this, AddHabitActivity::class.java)
-            startActivity(intent)
+            startActivityForResult(intent, REQUEST_ADD_HABIT)
         }
     }
 
@@ -47,4 +57,15 @@ class Home: AppCompatActivity() {
         val currentDate = dateFormat.format(calendar.time)
         tvDate.text = currentDate
     }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_ADD_HABIT && resultCode == Activity.RESULT_OK) {
+            val newHabitName = data?.getStringExtra("NEW_HABIT_NAME") ?: return
+            habitList.add(newHabitName)
+            habitAdapter.notifyItemInserted(habitList.size - 1)
+        }
+    }
 }
+
+

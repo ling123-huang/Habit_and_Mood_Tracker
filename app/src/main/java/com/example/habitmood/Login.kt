@@ -9,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import android.widget.Toast
+
 
 class Login : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,8 +40,30 @@ class Login : AppCompatActivity() {
 
         val loginBtn = findViewById<Button>(R.id.loginButton)
         loginBtn.setOnClickListener {
-            val intent = Intent(this, Home::class.java)
-            startActivity(intent)
+            val inputEmail = emailField.text.toString().trim()
+            val inputPassword = passwordField.text.toString()
+
+            if (inputEmail.isEmpty() || inputPassword.isEmpty()) {
+                Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+            val savedEmail = prefs.getString("email", null)
+            val savedPassword = prefs.getString("password", null)
+
+            if (savedEmail == null || savedPassword == null) {
+                Toast.makeText(this, "No account found. Please sign up first.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (inputEmail == savedEmail && inputPassword == savedPassword) {
+                val intent = Intent(this, Home::class.java)
+                startActivity(intent)
+                finish()
+            } else {
+                Toast.makeText(this, "Wrong email or password", Toast.LENGTH_SHORT).show()
+            }
         }
 
         val signupBtn = findViewById<Button>(R.id.signupButton)

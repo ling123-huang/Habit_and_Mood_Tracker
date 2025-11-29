@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.util.Calendar
+import android.widget.EditText
 
 class AddHabitActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,6 +20,7 @@ class AddHabitActivity : AppCompatActivity() {
         val cbAlarm = findViewById<CheckBox>(R.id.cbAlarm)
         val tvTimePicker = findViewById<TextView>(R.id.tvTimePicker)
         val btnSave = findViewById<Button>(R.id.btnSaveHabit)
+        val etHabitName = findViewById<EditText>(R.id.etHabitName)
 
         //시간 선택 화면
         cbAlarm.setOnCheckedChangeListener { _, isChecked ->
@@ -55,6 +57,17 @@ class AddHabitActivity : AppCompatActivity() {
 
         // 'Add Habit' 버튼 클릭 이벤트
         btnSave.setOnClickListener {
+            val habitName = etHabitName.text.toString().trim()
+
+            if (habitName.isEmpty()) {
+                Toast.makeText(this, "Please enter habit name", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val resultIntent = Intent().apply {
+                putExtra("NEW_HABIT_NAME", habitName)
+            }
+            setResult(RESULT_OK, resultIntent)
             Toast.makeText(this, "Habit Added!", Toast.LENGTH_SHORT).show()
 
             finish() // Home 화면으로

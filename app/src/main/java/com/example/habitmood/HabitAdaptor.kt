@@ -7,8 +7,9 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import androidx.appcompat.app.AlertDialog
 
-class HabitAdapter(private val habitList: MutableList<String>) :
+class HabitAdapter(private val habitList: MutableList<String>,private val onDelete: (Int) -> Unit) :
     RecyclerView.Adapter<HabitAdapter.HabitViewHolder>() {
 
     // 각 습관의 체크 상태와 누적 일수를 저장 (임시)
@@ -66,6 +67,27 @@ class HabitAdapter(private val habitList: MutableList<String>) :
             intent.putExtra("HABIT_NAME", habitName)
             context.startActivity(intent)
         }
+
+        holder.btnHabit.setOnLongClickListener {
+            val currentPos = holder.bindingAdapterPosition
+            if (currentPos == RecyclerView.NO_POSITION) {
+                return@setOnLongClickListener true
+            }
+
+            val context = holder.itemView.context
+
+            AlertDialog.Builder(context)
+                .setTitle("Delete habit")
+                .setMessage("Are you sure you want to delete \"$habitName\"?")
+                .setPositiveButton("Delete") { _, _ ->
+                    onDelete(currentPos)
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+
+            true
+        }
+
     }
 
     private fun updateCheckState(holder: HabitViewHolder, isChecked: Boolean, streak: Int) {
