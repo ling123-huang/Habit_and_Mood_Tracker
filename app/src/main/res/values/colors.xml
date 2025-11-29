@@ -5,4 +5,7 @@
     <color name="light_green">#E4EEE4</color>
     <color name="gray">#757575</color>
     <color name="green">#1F4621</color>
+    <color name="light_gray">#E0E0E0</color>
+    <color name="light_light_gray">#ECECEC</color>
+
 </resources>

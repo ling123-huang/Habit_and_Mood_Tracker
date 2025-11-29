@@ -24,7 +24,7 @@
                 android:id="@+id/tvDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Monday, 25 Nov"
+                tools:text="Monday, 25 Nov"
                 android:textSize="14sp"
                 android:textColor="@color/gray"
                 android:letterSpacing="0.05"
