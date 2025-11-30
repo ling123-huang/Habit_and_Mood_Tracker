@@ -5,7 +5,7 @@
     android:id="@+id/home"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_green"
+    android:background="@color/light_light_gray"
     tools:context=".Home">
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -31,9 +31,10 @@
                 android:layout_marginBottom="4dp"/>
 
             <TextView
+                android:id="@+id/tvUserName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hello, User 👋"
+                android:text="@string/hello_user"
                 android:fontFamily="@font/comfortaa"
                 android:textSize="28sp"
                 android:textStyle="bold"
@@ -46,7 +47,7 @@
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#E0E0E0"
+                app:strokeColor="@color/light_gray"
                 app:strokeWidth="1dp"
                 android:backgroundTint="@color/white"
                 android:layout_marginBottom="32dp">
@@ -163,11 +164,12 @@
                     android:textColor="@color/black"/>
 
                 <TextView
+                    android:id="@+id/habit_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="See All"
-                    android:textSize="14sp"
-                    android:textColor="#006064"
+                    android:text="@string/total_count_format"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
                     android:textStyle="bold"/>
             </LinearLayout>
 
@@ -191,10 +193,11 @@
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="120dp"
         android:contentDescription="Add Habit"
-        app:backgroundTint="@color/white"
+        android:backgroundTint="@color/green"
+
         app:fabSize="normal"
         app:srcCompat="@drawable/plus"
-        app:tint="@color/green" />
+        app:maxImageSize="@android:dimen/app_icon_size"/>
 
 
     <!-- 하단 바-->
@@ -203,10 +206,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:background="@drawable/border_top"
         app:fabCradleMargin="10dp"
         app:fabCradleRoundedCornerRadius="10dp"
         app:fabCradleVerticalOffset="0dp"
-        app:backgroundTint="@color/white"
         app:elevation="8dp"
         app:menu="@menu/bottom_nav">
 

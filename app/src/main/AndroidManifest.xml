@@ -12,12 +12,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HabitMood">
         <activity
+            android:name=".MyPage"
+            android:exported="false" />
+        <activity
             android:name=".MonthlyDetail"
             android:exported="false" />
         <activity
             android:name=".AddHabitActivity"
-            android:exported="false"
-            android:theme="@style/Theme.HabitMood.Dialog" />
+            android:exported="false" />
         <activity
             android:name=".Home"
             android:exported="false" />

@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="30dp"
-        android:backgroundTint="@color/light_green"
+        android:backgroundTint="@color/green"
         android:padding="15dp"
         android:text="Login"
         android:textSize="20sp"/>
@@ -68,7 +68,7 @@
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:backgroundTint="@color/light_green"
+        android:backgroundTint="@color/green"
         android:padding="15dp"
         android:text="Sign Up"
         android:textSize="20sp"/>

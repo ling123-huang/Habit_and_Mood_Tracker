@@ -92,7 +92,7 @@
             android:id="@+id/btnRegister"
             android:layout_width="300dp"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/light_green"
+            android:backgroundTint="@color/green"
             android:padding="15dp"
             android:text="Sign Up"
             android:textSize="20sp"/>

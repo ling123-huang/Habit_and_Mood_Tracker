@@ -41,7 +41,7 @@ class CalendarDayAdapter(
             holder.tvDayNumber.visibility = View.VISIBLE
             holder.viewDayBackground.visibility = View.VISIBLE
 
-            // 체크된 날짜는 주황색 원, 아니면 회색 원
+            // 체크된 날짜는 초록 원, 아니면 회색 원
             if (day.isChecked) {
                 holder.viewDayBackground.setBackgroundResource(R.drawable.day_circle_checked)
                 holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.black))

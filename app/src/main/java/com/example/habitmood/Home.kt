@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FieldValue
@@ -20,13 +21,15 @@ class Home: AppCompatActivity() {
     private lateinit var fabAddHabit: FloatingActionButton
     private lateinit var habitAdapter: HabitAdapter
     private lateinit var tvDate: TextView
+    private lateinit var tvUserName: TextView
+    private lateinit var tvTotalCount: TextView
+    private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
 
 
     // 초기 습관 목록(일시적)
     private val habitList = mutableListOf<Habit>()
-
 
     companion object {
         private const val REQUEST_ADD_HABIT = 1001
@@ -39,11 +42,15 @@ class Home: AppCompatActivity() {
         habitRecyclerView = findViewById(R.id.habit_RecyclerView)
         fabAddHabit = findViewById(R.id.fabAddHabit)
         tvDate = findViewById(R.id.tvDate)
+        tvTotalCount = findViewById(R.id.habit_count)
+        tvUserName = findViewById(R.id.tvUserName)
+        bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomAppBar)
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-
+        auth = FirebaseAuth.getInstance()
         setCurrentDate()
+        setUserName()
 
         habitAdapter = HabitAdapter(habitList) { position ->
             if (position !in habitList.indices) return@HabitAdapter
@@ -59,6 +66,7 @@ class Home: AppCompatActivity() {
                 .addOnSuccessListener {
                     habitList.removeAt(position)
                     habitAdapter.notifyItemRemoved(position)
+                    updateTotalCount()
                 }
         }
         habitRecyclerView.layoutManager = LinearLayoutManager(this)
@@ -69,7 +77,43 @@ class Home: AppCompatActivity() {
             val intent = Intent(this, AddHabitActivity::class.java)
             startActivityForResult(intent, REQUEST_ADD_HABIT)
         }
+        setupBottomNavigation()
         loadHabitsFromFirestore()
+    }
+
+    private fun setUserName() {
+        val user = auth.currentUser
+        val name = user?.displayName ?: "User"
+
+        tvUserName.text = "Hello, $name 👋"
+    }
+
+    private fun setupBottomNavigation() {
+        // 현재 페이지를 Home으로 설정
+        bottomNavigationView.selectedItemId = R.id.home_page
+
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.menu_stats -> {
+                    // Mood 화면으로 이동
+                    // MoodActivity 생성 후 연결
+                    // val intent = Intent(this, MoodActivity::class.java)
+                    // startActivity(intent)
+                    true
+                }
+                R.id.home_page -> {
+                    true
+                }
+                R.id.menu_profile -> {
+                    // MyActivity로 이동
+                    val intent = Intent(this, MyPage::class.java)
+                    startActivity(intent)
+                    overridePendingTransition(0, 0) // 애니메이션 없이 전환
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     private fun setCurrentDate() {
@@ -99,9 +143,12 @@ class Home: AppCompatActivity() {
                     val habit = Habit(docRef.id, newHabitName)
                     habitList.add(habit)
                     habitAdapter.notifyItemInserted(habitList.size - 1)
+                    updateTotalCount()
                 }
         }
-
+    }
+    private fun updateTotalCount() {
+        tvTotalCount.text = "Total: ${habitList.size}"
     }
     private fun loadHabitsFromFirestore() {
         val user = auth.currentUser ?: return
@@ -119,9 +166,9 @@ class Home: AppCompatActivity() {
                     habitList.add(habit)
                 }
                 habitAdapter.notifyDataSetChanged()
+                updateTotalCount()
             }
     }
-
 }
 
 

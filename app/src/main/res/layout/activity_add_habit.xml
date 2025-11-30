@@ -1,77 +1,187 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/addhabit"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:background="@color/white"
     app:cardCornerRadius="16dp"
     app:cardElevation="8dp"
-    android:gravity="center"
     tools:context=".AddHabitActivity">
 
-    <LinearLayout
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/white"
+        app:navigationIcon="@drawable/back"
+        app:title="New Habit"
+        app:titleTextColor="@color/black" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Please write down the name of the habit!"
-            android:textSize="20sp"
-            android:fontFamily="@font/comfortaa"
-            android:gravity="center"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            android:layout_centerInParent="true"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-
-        <!-- 습관 이름 입력 -->
-        <EditText
-            android:id="@+id/etHabitName"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter habit name"
-            android:background="@android:drawable/edit_text"
-            android:padding="10dp"
-            android:layout_marginBottom="16dp"/>
+            android:orientation="vertical"
+            android:padding="24dp">
 
-        <!-- 알림 체크박스 -->
-        <CheckBox
-            android:id="@+id/cbAlarm"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Set Reminder"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Please write down the name of the habit!"
+                android:textSize="20sp"
+                android:fontFamily="@font/comfortaa"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textColor="@color/black"/>
 
-        <!-- 알림 시간 선택 -->
-        <TextView
-            android:id="@+id/tvTimePicker"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="09:00 AM"
-            android:textSize="16sp"
-            android:padding="10dp"
-            android:gravity="center"
-            android:background="@color/white"
-            android:textColor="@color/black"
-            android:visibility="gone"
-            android:layout_marginBottom="24dp"/>
 
-        <!-- 추가 버튼 -->
-        <Button
-            android:id="@+id/btnSaveHabit"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Done"
-            android:textSize="25dp"
-            android:backgroundTint="@color/light_green"
-            android:textColor="@color/white"
-            android:textStyle="bold"/>
+            <!-- 습관 이름 입력 -->
+            <EditText
+                android:id="@+id/etHabitName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter habit name"
+                android:background="@android:drawable/edit_text"
+                android:padding="10dp"
+                android:layout_marginBottom="16dp"/>
 
-    </LinearLayout>
-</androidx.cardview.widget.CardView>
+            <!-- 알림 설정 토글 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Set Reminder"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"/>
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchAlarm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:theme="@style/GreenSwitchTheme"/>
+            </LinearLayout>
+
+            <!-- 알림 세부 설정 (숨겨져 있다가 켜지면 보임) -->
+            <LinearLayout
+                android:id="@+id/layoutAlarmDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <!-- 시간 선택 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Time"
+                    android:layout_marginTop="8dp"
+                    android:textColor="#666666"/>
+
+                <TextView
+                    android:id="@+id/tvTimePicker"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="09:00 AM"
+                    android:textSize="32sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    android:layout_marginBottom="24dp"/>
+
+                <!-- 반복 빈도 (매일 vs 선택) -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Frequency"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="#666666"/>
+
+                <RadioGroup
+                    android:id="@+id/radioGroupFrequency"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <RadioButton
+                        android:id="@+id/rbEveryday"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Every day"
+                        android:checked="true"
+                        android:buttonTint="@color/green"
+                        android:layout_marginEnd="16dp"/>
+
+                    <RadioButton
+                        android:id="@+id/rbSpecificDays"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:buttonTint="@color/green"
+                        android:text="Specific days"/>
+                </RadioGroup>
+
+                <!-- 요일 선택 칩 (Specific days 선택 시 활성화) -->
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupDays"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="false"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipMon" style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mon"/>
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipTue" style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tue"/>
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipWed" style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Wed"/>
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipThu" style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Thu"/>
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipFri" style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fri"/>
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipSat" style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sat"
+                        android:textColor="#FF5252"/>
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipSun" style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sun"
+                        android:textColor="#FF5252"/>
+                </com.google.android.material.chip.ChipGroup>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/btnSaveHabit"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Create Habit"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:backgroundTint="@color/green"
+        android:textColor="@color/white"
+        android:layout_margin="16dp"/>
+</LinearLayout>

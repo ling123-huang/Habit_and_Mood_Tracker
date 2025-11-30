@@ -160,15 +160,15 @@
     <Button
         android:id="@+id/btnComplete"
         android:layout_width="300dp"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Complete"
         android:layout_marginTop="30dp"
+        android:backgroundTint="@color/green"
+        android:stateListAnimator="@null"
+        android:text="Complete"
+        android:textColor="@color/white"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="@color/white"
-        android:backgroundTint="@color/light_green"
-        android:stateListAnimator="@null"
-        app:cornerRadius="12dp"/>
+        app:cornerRadius="12dp" />
 
 </LinearLayout>
