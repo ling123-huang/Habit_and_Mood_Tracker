@@ -77,8 +77,6 @@ class MyPage : AppCompatActivity() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.menu_stats -> {
-                    // Mood 화면으로 이동
-                    // TODO: MoodActivity 생성 후 연결
                     true
                 }
                 R.id.home_page -> {
