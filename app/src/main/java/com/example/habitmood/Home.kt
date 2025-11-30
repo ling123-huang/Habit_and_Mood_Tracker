@@ -95,10 +95,8 @@ class Home: AppCompatActivity() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.menu_stats -> {
-                    // Mood 화면으로 이동
-                    // MoodActivity 생성 후 연결
-                    // val intent = Intent(this, MoodActivity::class.java)
-                    // startActivity(intent)
+                    val intent = Intent(this, MoodStatistics::class.java)
+                    startActivity(intent)
                     true
                 }
                 R.id.home_page -> {

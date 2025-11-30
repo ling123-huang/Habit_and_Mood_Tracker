@@ -75,86 +75,12 @@
             android:contentDescription="Next Month"/>
     </LinearLayout>
 
-    <!-- 요일 헤더 -->
-    <LinearLayout
+    <include
+        android:id="@+id/includedCalendar"
+        layout="@layout/view_calendar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="8dp">
+        android:layout_height="wrap_content" />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Sun"
-            android:textSize="14sp"
-            android:textColor="#757575"
-            android:gravity="center"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Mon"
-            android:textSize="14sp"
-            android:textColor="#757575"
-            android:gravity="center"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Tue"
-            android:textSize="14sp"
-            android:textColor="#757575"
-            android:gravity="center"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Wed"
-            android:textSize="14sp"
-            android:textColor="#757575"
-            android:gravity="center"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Thu"
-            android:textSize="14sp"
-            android:textColor="#757575"
-            android:gravity="center"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Fri"
-            android:textSize="14sp"
-            android:textColor="#757575"
-            android:gravity="center"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Sat"
-            android:textSize="14sp"
-            android:textColor="#757575"
-            android:gravity="center"/>
-    </LinearLayout>
-
-    <!-- 커스텀 달력 그리드 -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/calendarRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:nestedScrollingEnabled="false"
-        android:layout_marginBottom="32dp"/>
 
     <!-- 하단 체크박스 영역 -->
     <Button

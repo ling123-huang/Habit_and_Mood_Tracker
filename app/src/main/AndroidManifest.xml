@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HabitMood">
         <activity
+            android:name=".MoodStatistics"
+            android:exported="false" />
+        <activity
             android:name=".MyPage"
             android:exported="false" />
         <activity
