@@ -5,9 +5,13 @@ import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -25,18 +29,23 @@ class MonthlyDetail : AppCompatActivity() {
     private val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.ENGLISH)
 
     // 임시: 체크된 날짜들 (백엔드에서 가져올 데이터)
-    private val checkedDates = mutableSetOf(
-        "2025-11-04",
-        "2025-11-05",
-        "2025-11-10",
-        "2025-11-15"
-    )
+    private val checkedDates = mutableSetOf<String>()
+
+
+    // Firebase
+    private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
+
+    private var habitId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_monthly_detail)
 
         Log.d("MonthlyDetail", "onCreate started")
+
+        auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
 
         // View 초기화
         calendarRecyclerView = findViewById(R.id.calendarRecyclerView)
@@ -52,25 +61,26 @@ class MonthlyDetail : AppCompatActivity() {
         // RecyclerView 설정 (7열 그리드)
         calendarRecyclerView.layoutManager = GridLayoutManager(this, 7)
 
-        // Intent에서 습관 이름 받기
+        // Intent에서 습관 이름 & ID 받기
         val habitName = intent.getStringExtra("HABIT_NAME") ?: "Habit"
+        habitId = intent.getStringExtra("HABIT_ID")
         tvHabitTitle.text = habitName
 
         Log.d("MonthlyDetail", "Habit name: $habitName")
 
-        // 달력 표시
-        updateCalendar()
+        // 현재 달의 체크 데이터 로드 + 달력 표시
+        loadCheckedDatesForCurrentMonth()
 
         // 이전 달 버튼
         btnPrevMonth.setOnClickListener {
             calendar.add(Calendar.MONTH, -1)
-            updateCalendar()
+            loadCheckedDatesForCurrentMonth()
         }
 
         // 다음 달 버튼
         btnNextMonth.setOnClickListener {
             calendar.add(Calendar.MONTH, 1)
-            updateCalendar()
+            loadCheckedDatesForCurrentMonth()
         }
 
         // 뒤로가기 버튼
@@ -78,19 +88,99 @@ class MonthlyDetail : AppCompatActivity() {
             finish()
         }
 
-        // Complete 버튼
+        // Complete 버튼: 오늘 날짜 토글
         btnComplete.setOnClickListener {
-            // 오늘 날짜 체크 추가
             val today = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
-            if (checkedDates.contains(today)) {
-                checkedDates.remove(today)
-            } else {
-                checkedDates.add(today)
-            }
-            updateCalendar()
+            toggleCheckForDate(today)
         }
     }
 
+    private fun loadCheckedDatesForCurrentMonth() {
+        val user = auth.currentUser
+        val localHabitId = habitId
+
+        // 우선 화면의 월/년 표시 및 기존 체크 상태 초기화
+        checkedDates.clear()
+        updateCalendar()
+
+        if (user == null || localHabitId == null) {
+            // 로그인 안 되어 있으면 로컬 표시만
+            return
+        }
+
+        // 이번 달의 시작/끝 날짜 문자열 계산
+        val tempStart = calendar.clone() as Calendar
+        tempStart.set(Calendar.DAY_OF_MONTH, 1)
+
+        val tempEnd = calendar.clone() as Calendar
+        tempEnd.set(Calendar.DAY_OF_MONTH, tempEnd.getActualMaximum(Calendar.DAY_OF_MONTH))
+
+        val keyFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+        val startKey = keyFormat.format(tempStart.time)
+        val endKey = keyFormat.format(tempEnd.time)
+
+        db.collection("users")
+            .document(user.uid)
+            .collection("habits")
+            .document(localHabitId)
+            .collection("checkins")
+            .whereGreaterThanOrEqualTo("date", startKey)
+            .whereLessThanOrEqualTo("date", endKey)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                for (doc in snapshot) {
+                    val dateStr = doc.getString("date") ?: doc.id
+                    checkedDates.add(dateStr)
+                }
+                updateCalendar()
+            }
+    }
+
+    // 날짜 하나를 Firestore에 토글 저장하는 함수
+    private fun toggleCheckForDate(dateKey: String) {
+        val user = auth.currentUser
+        val localHabitId = habitId
+
+        // 로그인/ID 없으면 로컬 세트만 토글
+        if (user == null || localHabitId == null) {
+            if (checkedDates.contains(dateKey)) {
+                checkedDates.remove(dateKey)
+            } else {
+                checkedDates.add(dateKey)
+            }
+            updateCalendar()
+            return
+        }
+
+        val docRef = db.collection("users")
+            .document(user.uid)
+            .collection("habits")
+            .document(localHabitId)
+            .collection("checkins")
+            .document(dateKey)
+
+        if (checkedDates.contains(dateKey)) {
+            // 이미 체크되어 있으면 삭제
+            docRef.delete()
+                .addOnSuccessListener {
+                    checkedDates.remove(dateKey)
+                    updateCalendar()
+                }
+        } else {
+            // 없으면 새로 생성
+            val data = hashMapOf(
+                "date" to dateKey,
+                "timestamp" to FieldValue.serverTimestamp()
+            )
+            docRef.set(data)
+                .addOnSuccessListener {
+                    checkedDates.add(dateKey)
+                    updateCalendar()
+                }
+        }
+    }
+
+    // 달력 전체를 다시 그리는 함수
     private fun updateCalendar() {
         // 월/년 표시 업데이트
         tvMonthYear.text = dateFormat.format(calendar.time)
@@ -104,14 +194,9 @@ class MonthlyDetail : AppCompatActivity() {
         // 어댑터 설정
         val adapter = CalendarDayAdapter(days) { day ->
             Log.d("MonthlyDetail", "Day clicked: ${day.date}")
-            // 날짜 클릭 시 체크 토글
-            val dateKey = day.date
-            if (checkedDates.contains(dateKey)) {
-                checkedDates.remove(dateKey)
-            } else {
-                checkedDates.add(dateKey)
+            if (day.date.isNotBlank()) {
+                toggleCheckForDate(day.date)
             }
-            updateCalendar() // 달력 새로고침
         }
         calendarRecyclerView.adapter = adapter
 

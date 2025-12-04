@@ -5,9 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
-import androidx.appcompat.app.AlertDialog
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.*
 
 class HabitAdapter(private val habitList: MutableList<Habit>,private val onDelete: (Int) -> Unit) :
     RecyclerView.Adapter<HabitAdapter.HabitViewHolder>() {
@@ -16,13 +20,13 @@ class HabitAdapter(private val habitList: MutableList<Habit>,private val onDelet
     private val checkedStates = mutableMapOf<Int, Boolean>()
     private val streakDays = mutableMapOf<Int, Int>()
 
-    class HabitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val btnHabit: MaterialButton = itemView.findViewById(R.id.btnHabit)
-        val tvHabitName: TextView = itemView.findViewById(R.id.tvHabitName)
-        val tvHabitDays: TextView = itemView.findViewById(R.id.tvHabitDays)
-        val viewOuterCircle: View = itemView.findViewById(R.id.viewOuterCircle)
-        val tvStreakDays: TextView = itemView.findViewById(R.id.tvStreakDays)
-        val checkCircleFrame: View = itemView.findViewById(R.id.checkCircleFrame)
+    inner class HabitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val tvHabitName: TextView = itemView.findViewById(R.id.tvHabitName)    // 습관 이름
+        val tvHabitDays: TextView = itemView.findViewById(R.id.tvHabitDays)    // "Started 날짜"
+        val tvStreakDays: TextView = itemView.findViewById(R.id.tvStreakDays)  // 연속 일수 숫자
+
+        val viewOuterCircle: View = itemView.findViewById(R.id.viewOuterCircle) // 동그라미 테두리
+        val btnHabit: MaterialButton = itemView.findViewById(R.id.btnHabit)     // 카드 전체 버튼
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HabitViewHolder {
@@ -31,77 +35,172 @@ class HabitAdapter(private val habitList: MutableList<Habit>,private val onDelet
         return HabitViewHolder(view)
     }
 
+
     override fun onBindViewHolder(holder: HabitViewHolder, position: Int) {
         val habit = habitList[position]
-        val habitName = habit.name
-        val isChecked = checkedStates[position] ?: false
-        val streak = streakDays[position] ?: 0
 
-        holder.tvHabitName.text = habitName
-        holder.tvHabitDays.text = "2025.11.04 ~"
+        holder.tvHabitName.text = habit.name
 
-        // 누적 일수 표시
-        holder.tvStreakDays.text = streak.toString()
+        holder.tvHabitDays.text =
+            if (habit.createdDate.isNotEmpty()) "Started ${habit.createdDate}" else "Started"
 
-        // 체크 상태에 따라 UI 업데이트
-        updateCheckState(holder, isChecked, streak)
+        holder.tvStreakDays.text = "0/0"
+        updateCheckState(holder, false)
 
-        // 원 클릭 시 체크 토글
-        holder.checkCircleFrame.setOnClickListener {
-            val newCheckedState = !isChecked
-            checkedStates[position] = newCheckedState
+        calculateProgressForHabit(habit) { displayText, isTodayChecked ->
 
-            // 체크하면 누적 일수 증가, 해제하면 감소
-            if (newCheckedState) {
-                streakDays[position] = streak + 1
-            } else {
-                streakDays[position] = maxOf(0, streak - 1)
+            if (holder.adapterPosition == position) {
+                holder.tvStreakDays.text = displayText
+                updateCheckState(holder, isTodayChecked)
             }
-
-            notifyItemChanged(position)
         }
 
-        // Button 클릭 시 MonthlyDetail 화면으로 이동
         holder.btnHabit.setOnClickListener {
             val context = holder.itemView.context
-            val intent = Intent(context, MonthlyDetail::class.java)
-            intent.putExtra("HABIT_NAME", habitName)
+            val intent = Intent(context, MonthlyDetail::class.java).apply {
+                putExtra("HABIT_ID", habit.id)
+                putExtra("HABIT_NAME", habit.name)
+            }
             context.startActivity(intent)
         }
 
         holder.btnHabit.setOnLongClickListener {
-            val currentPos = holder.bindingAdapterPosition
-            if (currentPos == RecyclerView.NO_POSITION) {
-                return@setOnLongClickListener true
-            }
-
             val context = holder.itemView.context
-
             AlertDialog.Builder(context)
                 .setTitle("Delete habit")
-                .setMessage("Are you sure you want to delete \"$habitName\"?")
+                .setMessage("Delete \"${habit.name}\"?")
                 .setPositiveButton("Delete") { _, _ ->
-                    onDelete(currentPos)
+                    onDelete(holder.adapterPosition)
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
-
             true
-        }
-
-    }
-
-    private fun updateCheckState(holder: HabitViewHolder, isChecked: Boolean, streak: Int) {
-        if (isChecked) {
-            // 체크된 상태: 두 원 사이가 연두색으로 채워짐
-            holder.viewOuterCircle.setBackgroundResource(R.drawable.circle_outer_checked)
-            holder.tvStreakDays.setTextColor(holder.itemView.context.getColor(R.color.light_green))
-        } else {
-            // 체크 안 된 상태: 회색 테두리
-            holder.viewOuterCircle.setBackgroundResource(R.drawable.circle_outer_unchecked)
-            holder.tvStreakDays.setTextColor(holder.itemView.context.getColor(android.R.color.darker_gray))
         }
     }
 
     override fun getItemCount(): Int = habitList.size
+
+    private fun calculateProgressForHabit(
+        habit: Habit,
+        callback: (displayText: String, isTodayChecked: Boolean) -> Unit
+    ) {
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            callback("0/0", false)
+            return
+        }
+
+        val db = FirebaseFirestore.getInstance()
+
+        // checkins 전체 가져오기
+        db.collection("users")
+            .document(user.uid)
+            .collection("habits")
+            .document(habit.id)
+            .collection("checkins")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val checkinDates: Set<String> = snapshot.documents.map { it.id }.toSet()
+                if (habit.createdDate.isEmpty()) {
+                    // 생성 날짜를 모르면 단순히 완료 횟수/완료 횟수 로 표시
+                    val done = checkinDates.size
+                    val text = "$done/$done"
+                    val todayKey = todayKey()
+                    val isTodayChecked = checkinDates.contains(todayKey)
+                    callback(text, isTodayChecked)
+                    return@addOnSuccessListener
+                }
+
+                // 1) createdDate 문자열("yyyy.MM.dd") → Date
+                val created = try {
+                    SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
+                        .parse(habit.createdDate)
+                } catch (e: Exception) {
+                    null
+                }
+
+                if (created == null) {
+                    val done = checkinDates.size
+                    val text = "$done/$done"
+                    val todayKey = todayKey()
+                    val isTodayChecked = checkinDates.contains(todayKey)
+                    callback(text, isTodayChecked)
+                    return@addOnSuccessListener
+                }
+
+                // 2) 스케줄 요일 정보
+                val scheduledDays = habit.selectedDays.map { it.lowercase(Locale.getDefault()) }
+                val treatAsEveryday =
+                    scheduledDays.isEmpty() || scheduledDays.contains("everyday")
+
+                // 3) createdDate ~ 오늘까지 하루씩 증가하면서
+                //    그날이 "스케줄 요일"이면 total++,
+                //    그리고 checkins 안에 있으면 done++.
+                val cal = Calendar.getInstance()
+                val endDate = cal.time   // 오늘
+                cal.time = created
+
+                val keyFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                var total = 0
+                var done = 0
+
+                while (!cal.time.after(endDate)) {
+                    val dow = cal.get(Calendar.DAY_OF_WEEK) // 1: Sun ~ 7: Sat
+                    val weekdayKey = when (dow) {
+                        Calendar.SUNDAY -> "sun"
+                        Calendar.MONDAY -> "mon"
+                        Calendar.TUESDAY -> "tue"
+                        Calendar.WEDNESDAY -> "wed"
+                        Calendar.THURSDAY -> "thu"
+                        Calendar.FRIDAY -> "fri"
+                        Calendar.SATURDAY -> "sat"
+                        else -> ""
+                    }
+
+                    val isScheduled =
+                        treatAsEveryday || scheduledDays.contains(weekdayKey)
+
+                    if (isScheduled) {
+                        total++
+                        val dateKey = keyFormat.format(cal.time)
+                        if (checkinDates.contains(dateKey)) {
+                            done++
+                        }
+                    }
+
+                    cal.add(Calendar.DAY_OF_MONTH, 1)
+                }
+
+                val todayKey = keyFormat.format(endDate)
+                val isTodayChecked = checkinDates.contains(todayKey)
+
+                val display = if (total > 0) "$done/$total" else "0/0"
+                callback(display, isTodayChecked)
+            }
+            .addOnFailureListener {
+                callback("0/0", false)
+            }
+    }
+    // 오늘 날짜 key("yyyy-MM-dd")
+    private fun todayKey(): String {
+        val df = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return df.format(Date())
+    }
+
+
+    private fun updateCheckState(holder: HabitViewHolder, isTodayChecked: Boolean) {
+        if (isTodayChecked) {
+            // 오늘 완료: 연두색 테두리 + 글씨색
+            holder.viewOuterCircle.setBackgroundResource(R.drawable.circle_outer_checked)
+            holder.tvStreakDays.setTextColor(
+                holder.itemView.context.getColor(R.color.light_green)
+            )
+        } else {
+            // 오늘 미완료: 회색 테두리
+            holder.viewOuterCircle.setBackgroundResource(R.drawable.circle_outer_unchecked)
+            holder.tvStreakDays.setTextColor(
+                holder.itemView.context.getColor(android.R.color.darker_gray)
+            )
+        }
+    }
 }

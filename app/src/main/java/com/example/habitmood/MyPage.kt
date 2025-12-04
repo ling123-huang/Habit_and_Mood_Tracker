@@ -9,13 +9,15 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MyPage : AppCompatActivity() {
 
     private lateinit var tvUserName: TextView
     private lateinit var tvUserEmail: TextView
-    private lateinit var tvTotalHabits: TextView
-    private lateinit var tvCurrentStreak: TextView
+    private lateinit var tvTotalHabits: TextView      // 전체 습관 수
+    private lateinit var tvCurrentStreak: TextView    // 연속 달성 일수
     private lateinit var tvCompletionRate: TextView
     private lateinit var btnEditProfile: MaterialButton
     private lateinit var btnLogout: MaterialButton
@@ -77,6 +79,9 @@ class MyPage : AppCompatActivity() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.menu_stats -> {
+                    val intent = Intent(this, MoodStatistics::class.java)
+                    startActivity(intent)
+                    overridePendingTransition(0, 0)
                     true
                 }
                 R.id.home_page -> {
@@ -106,6 +111,8 @@ class MyPage : AppCompatActivity() {
             tvUserEmail.text = "Not logged in"
         }
     }
+
+
 
     override fun onResume() {
         super.onResume()
