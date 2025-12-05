@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.Manifest
 import android.content.pm.PackageManager
+import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -20,6 +21,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -47,11 +49,11 @@ class Home: AppCompatActivity() {
     private lateinit var btnMoodVeryGood: TextView
     private lateinit var tvCurrentMood: TextView
     private lateinit var etMoodNote: TextInputEditText
+    private lateinit var layoutMoodNote: TextInputLayout
+    private lateinit var btnReset: TextView
     private lateinit var btnSaveMood: MaterialButton
 
 
-
-    // 초기 습관 목록(일시적)
     private val habitList = mutableListOf<Habit>()
 
     companion object {
@@ -96,9 +98,15 @@ class Home: AppCompatActivity() {
         btnMoodVeryGood = findViewById(R.id.btnMoodVeryGood)
         tvCurrentMood = findViewById(R.id.tvCurrentMood)
         etMoodNote = findViewById(R.id.etMoodNote)
+        layoutMoodNote = findViewById(R.id.layoutMoodNote)
         btnSaveMood = findViewById(R.id.btnSaveMood)
+        btnReset = findViewById(R.id.btnReset)
 
+        btnReset.paintFlags = btnReset.paintFlags or android.graphics.Paint.UNDERLINE_TEXT_FLAG
 
+        btnReset.setOnClickListener {
+            resetMoodSelection()
+        }
         habitAdapter = HabitAdapter(habitList) { position ->
             val habit = habitList.getOrNull(position) ?: return@HabitAdapter
             val user = auth.currentUser ?: return@HabitAdapter
@@ -151,7 +159,7 @@ class Home: AppCompatActivity() {
         }
 
         loadHabitsFromFirestore()
-
+        loadTodayMood()
     }
     private fun updateMoodUI() {
         val moods = listOf(
@@ -215,9 +223,14 @@ class Home: AppCompatActivity() {
             .set(data)
             .addOnSuccessListener {
                 Toast.makeText(this, "Mood saved!", Toast.LENGTH_SHORT).show()
+
+                etMoodNote.clearFocus()
+                layoutMoodNote.visibility = View.GONE
+                btnSaveMood.visibility = View.GONE
+
+                //btnReset.visibility = View.VISIBLE
             }
     }
-
 
     private fun setUserName() {
         val user = auth.currentUser
@@ -394,5 +407,59 @@ class Home: AppCompatActivity() {
         loadHabitsFromFirestore()
     }
 
+    private fun loadTodayMood() {
+        val user = auth.currentUser ?: return
+        val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+        db.collection("users")
+            .document(user.uid)
+            .collection("moods")
+            .document(todayKey)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    // 1. 저장된 기분 가져오기 (1~5)
+                    val savedMood = document.getLong("mood")?.toInt()
+
+                    // 2. 기분이 있다면 UI에 반영
+                    if (savedMood != null && savedMood in 1..5) {
+                        selectedMood = savedMood
+                        updateMoodUI() // 아이콘 크기 키우고 투명도 조절하는 함수 호출
+                    }
+                    layoutMoodNote.visibility = View.GONE
+                    btnSaveMood.visibility = View.GONE
+                }
+            }
+    }
+
+    // 선택 및 입력 내용 초기화 함수
+    private fun resetMoodSelection() {
+        val user = auth.currentUser ?: return
+        val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+        // Firestore에서 오늘 날짜의 기록 삭제 요청
+        db.collection("users")
+            .document(user.uid)
+            .collection("moods")
+            .document(todayKey)
+            .delete()
+            .addOnSuccessListener {
+                selectedMood = null
+
+                etMoodNote.text?.clear()
+                etMoodNote.clearFocus()
+
+                updateMoodUI()
+                // 다시 입력할 수 있도록 입력창과 저장 버튼을 보여줌
+                layoutMoodNote.visibility = View.VISIBLE
+                btnSaveMood.visibility = View.VISIBLE
+
+                Toast.makeText(this, "Mood deleted and reset", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener {
+                // 삭제 실패 시 에러 메시지
+                Toast.makeText(this, "Failed to delete mood", Toast.LENGTH_SHORT).show()
+            }
+    }
 }
 

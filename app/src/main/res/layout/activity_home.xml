@@ -145,6 +145,7 @@
                         android:layout_marginTop="8dp"/>
 
                     <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/layoutMoodNote"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Add a note (optional)"
@@ -166,14 +167,25 @@
                     <!-- 저장 버튼 -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSaveMood"
-                        android:layout_width="match_parent"
-                        android:layout_height="56dp"
+                        android:layout_width="200dp"
+                        android:layout_height="wrap_content"
                         android:text="Save Mood"
                         android:textSize="16sp"
                         android:textStyle="bold"
+                        android:layout_gravity="center"
                         android:textColor="@color/white"
                         android:backgroundTint="#006064"
                         app:cornerRadius="12dp"/>
+
+                    <TextView
+                        android:id="@+id/btnReset"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Reset"
+                        android:textSize="12sp"
+                        android:layout_gravity="center"
+                        android:textColor="@color/green"
+                        android:backgroundTint="@color/white"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

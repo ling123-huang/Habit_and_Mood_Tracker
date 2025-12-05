@@ -45,11 +45,12 @@ class MoodStatistics : AppCompatActivity() {
     private val calendar = Calendar.getInstance()
     private val monthTitleFormat = SimpleDateFormat("MMMM yyyy", Locale.ENGLISH)
 
-    // 임시: 기분이 기록된 날짜들 (나중에 DB에서 가져올 데이터)
-    private val recordedDates: MutableSet<String> = mutableSetOf()
+    //private val recordedDates: MutableSet<String> = mutableSetOf()
+    private val recordedDates: MutableMap<String, String> = mutableMapOf()
 
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
+    private val emojiList = listOf("😢", "😔", "😐", "😊", "😍")//추가
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -148,8 +149,14 @@ class MoodStatistics : AppCompatActivity() {
                 recordedDates.clear()
                 for (doc in snapshot) {
                     val dateStr = doc.getString("date") ?: continue
-                    recordedDates.add(dateStr)
+
+                    // [수정] 기분 숫자(1~5)를 가져와서 이모티콘으로 변환하여 저장
+                    val moodVal = doc.getLong("mood")?.toInt() ?: 0
+                    if (moodVal in 1..5) {
+                        recordedDates[dateStr] = emojiList[moodVal - 1]
+                    }
                 }
+                    //recordedDates.add(dateStr)
 
                 updateCalendar(snapshot.documents)
                 updateMoodOverview(snapshot)
@@ -259,107 +266,33 @@ class MoodStatistics : AppCompatActivity() {
             .document(dateKey)
 
         docRef.get().addOnSuccessListener { document ->
+            val existingMood = document.getLong("mood")?.toInt() ?:0  // 1~5
+            //체크 안된 날은 다이어그램 표시 X
+            if (existingMood !in 1..5) {
+                return@addOnSuccessListener
+            }
             val existingNote = document.getString("note") ?: ""
-            val existingMood = document.getLong("mood")?.toInt()  // 1~5
+            val dialogView = layoutInflater.inflate(R.layout.dialog_view_mood, null)
 
-            // 默认心情：如果以前没选过，就用 3 = Neutral
-            var selectedMood = existingMood ?: 0
+            // View 찾기
+            val tvDate = dialogView.findViewById<TextView>(R.id.tvDialogDate)
+            val tvMood = dialogView.findViewById<TextView>(R.id.tvDialogMoodEmoji)
+            val tvNote = dialogView.findViewById<TextView>(R.id.tvDialogNote)
 
-            // 动态创建一个竖直布局，里面放一排 emoji + 一个 EditText
-            val padding = (16 * resources.displayMetrics.density).toInt()
+            tvDate.text = dateKey // 날짜 표시
 
-            val container = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(padding, padding, padding, 0)
-            }
+            tvMood.text = emojiList[existingMood - 1] // 위에서 검사했으므로 안전함
+            tvNote.text = if (existingNote.isNotEmpty()) existingNote else "No note recorded."
 
-            // 一排 emoji（Bad → Very Good）
-            val moodRow = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER
-            }
 
-            val emojis = listOf("😢", "😔", "😐", "😊", "😍")  // 1~5
-            val moodViews = mutableListOf<TextView>()
-
-            fun updateMoodHighlight() {
-                moodViews.forEachIndexed { index, tv ->
-                    if (index + 1 == selectedMood) {
-                        tv.alpha = 1.0f
-                        tv.scaleX = 1.2f
-                        tv.scaleY = 1.2f
-                    } else {
-                        tv.alpha = 0.4f
-                        tv.scaleX = 1.0f
-                        tv.scaleY = 1.0f
-                    }
-                }
-            }
-
-            emojis.forEachIndexed { index, emoji ->
-                val tv = TextView(this).apply {
-                    text = emoji
-                    textSize = 28f
-                    setPadding(padding / 2, padding / 2, padding / 2, padding / 2)
-                    isClickable = true
-                    isFocusable = true
-                    setOnClickListener {
-                        selectedMood = index + 1      // 1~5
-                        updateMoodHighlight()
-                    }
-                }
-                moodViews.add(tv)
-                moodRow.addView(tv)
-            }
-
-            // 初始高亮
-            updateMoodHighlight()
-
-            // 笔记输入框
-            val noteEditText = EditText(this).apply {
-                hint = "Add a note"
-                setText(existingNote)
-            }
-
-            container.addView(moodRow)
-            container.addView(noteEditText)
-
+            // 다이얼로그 생성 및 표시
             val builder = AlertDialog.Builder(this)
-                .setTitle(dateKey)
-                .setView(container)
+                .setView(dialogView) // 커스텀 레이아웃 설정
 
-            builder.setPositiveButton("Save") { _, _ ->
-                if (selectedMood == 0) {
-                    Toast.makeText(this, "Please select a mood", Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
-                }
+            val dialog = builder.create()
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-                val data = hashMapOf(
-                    "date" to dateKey,
-                    "mood" to selectedMood,                         // 保存/修改当天心情
-                    "note" to noteEditText.text.toString(),
-                    "timestamp" to FieldValue.serverTimestamp()
-                )
-                // mood 字段在 Home 页面存，这里用 merge() 只改 note
-                docRef.set(data, SetOptions.merge())
-                    .addOnSuccessListener {
-                        recordedDates.add(dateKey)
-                        updateUiWithCachedMoods()
-                    }
-            }
-
-            if (document.exists()) {
-                builder.setNeutralButton("Delete") { _, _ ->
-                    docRef.delete()
-                        .addOnSuccessListener {
-                            recordedDates.remove(dateKey)
-                            updateUiWithCachedMoods()
-                        }
-                }
-            }
-
-            builder.setNegativeButton("Cancel", null)
-            builder.show()
+            dialog.show()
         }
     }
     private fun generateCalendarDays(): List<CalendarDay> {
@@ -372,21 +305,36 @@ class MoodStatistics : AppCompatActivity() {
         val maxDayOfMonth = tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
         for (i in 1 until firstDayOfWeek) {
-            days.add(CalendarDay(0, false, false, ""))
+            days.add(CalendarDay(0,
+                false,
+                false,
+                null,
+                ""))
         }
 
         val dateFormatKey = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
         for (day in 1..maxDayOfMonth) {
             tempCalendar.set(Calendar.DAY_OF_MONTH, day)
             val dateKey = dateFormatKey.format(tempCalendar.time)
+            val emoji = recordedDates[dateKey]
             val isRecorded = recordedDates.contains(dateKey)
 
-            days.add(CalendarDay(day, true, isRecorded, dateKey))
+            days.add(CalendarDay(
+                dayNumber = day,
+                isCurrentMonth = true,
+                isChecked = isRecorded,
+                date = dateKey,
+                moodEmoji = emoji // 여기서 이모티콘을 어댑터로 보냄
+            ))
         }
 
         val remainingDays = 42 - days.size
         for (i in 1..remainingDays) {
-            days.add(CalendarDay(0, false, false, ""))
+            days.add(CalendarDay(0,
+                false,
+                false,
+                null,
+                ""))
         }
 
         return days

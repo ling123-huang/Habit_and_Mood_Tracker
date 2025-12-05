@@ -355,7 +355,11 @@ class MonthlyDetail : AppCompatActivity() {
 
         // 이전 달의 빈 칸 추가
         for (i in 1 until firstDayOfWeek) {
-            days.add(CalendarDay(0, false, false, ""))
+            days.add(CalendarDay(0,
+                false,
+                false,
+                null,
+                ""))
         }
 
         // 이번 달의 날짜 추가
@@ -365,13 +369,20 @@ class MonthlyDetail : AppCompatActivity() {
             val dateKey = dateFormatKey.format(tempCalendar.time)
             val isChecked = checkedDates.contains(dateKey)
 
-            days.add(CalendarDay(day, true, isChecked, dateKey))
+            days.add(CalendarDay(day,
+                true,
+                isChecked, null,
+                dateKey))
         }
 
         // 다음 달의 빈 칸 추가 (6주 채우기)
         val remainingDays = 42 - days.size // 6주 * 7일 = 42칸
         for (i in 1..remainingDays) {
-            days.add(CalendarDay(0, false, false, ""))
+            days.add(CalendarDay(0,
+                false,
+                false,
+                null,
+                ""))
         }
 
         return days
