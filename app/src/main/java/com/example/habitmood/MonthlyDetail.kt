@@ -38,6 +38,10 @@ class MonthlyDetail : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
 
     private var habitId: String? = null
+    private var habitCreatedDate: String? = null
+
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +63,9 @@ class MonthlyDetail : AppCompatActivity() {
         // Intent에서 습관 이름 & ID 받기
         val habitName = intent.getStringExtra("HABIT_NAME") ?: "Habit"
         habitId = intent.getStringExtra("HABIT_ID")
+        habitCreatedDate = intent.getStringExtra("HABIT_CREATED_DATE")   // 新增
         tvHabitTitle.text = habitName
+
 
         Log.d("MonthlyDetail", "Habit name: $habitName")
 
@@ -176,35 +182,85 @@ class MonthlyDetail : AppCompatActivity() {
     }
 
     private fun updateStatistics() {
-        // 현재 월의 체크 횟수
-        val monthCheckCount = checkedDates.size
-
-        // 현재 월의 총 일수
         val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-        // 현재 날짜가 이번 달이면 오늘까지만, 아니면 전체 일수
-        val today = Calendar.getInstance()
-        val targetDays = if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-            calendar.get(Calendar.MONTH) == today.get(Calendar.MONTH)) {
-            today.get(Calendar.DAY_OF_MONTH)
-        } else if (calendar.after(today)) {
-            0 // 미래 달은 0
-        } else {
-            daysInMonth // 과거 달은 전체 일수
+        var targetDays = daysInMonth
+        val createdStr = habitCreatedDate
+        var createdCal: Calendar? = null
+
+        if (!createdStr.isNullOrEmpty()) {
+            try {
+                val sdfCreated = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
+                val createdDate = sdfCreated.parse(createdStr)
+                if (createdDate != null) {
+                    createdCal = Calendar.getInstance().apply { time = createdDate }
+
+                    val createdYear = createdCal.get(Calendar.YEAR)
+                    val createdMonth = createdCal.get(Calendar.MONTH)
+                    val createdDay = createdCal.get(Calendar.DAY_OF_MONTH)
+
+                    val currentYear = calendar.get(Calendar.YEAR)
+                    val currentMonth = calendar.get(Calendar.MONTH)
+
+                    targetDays = when {
+                        currentYear < createdYear ||
+                                (currentYear == createdYear && currentMonth < createdMonth) -> 0
+
+                        currentYear == createdYear && currentMonth == createdMonth -> {
+                            daysInMonth - (createdDay - 1)
+                        }
+
+                        else -> daysInMonth
+                    }
+                }
+            } catch (_: Exception) {
+            }
         }
 
-        // 달성률 계산
+        val sdfKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val currentYear = calendar.get(Calendar.YEAR)
+        val currentMonth = calendar.get(Calendar.MONTH)
+
+        var monthCheckCount = 0
+
+        for (dateStr in checkedDates) {
+            try {
+                val date = sdfKey.parse(dateStr) ?: continue
+                val c = Calendar.getInstance().apply { time = date }
+
+                val y = c.get(Calendar.YEAR)
+                val m = c.get(Calendar.MONTH)
+                val d = c.get(Calendar.DAY_OF_MONTH)
+
+                if (y != currentYear || m != currentMonth) continue
+
+                if (createdCal != null &&
+                    y == createdCal.get(Calendar.YEAR) &&
+                    m == createdCal.get(Calendar.MONTH) &&
+                    d < createdCal.get(Calendar.DAY_OF_MONTH)
+                ) {
+                    continue
+                }
+
+                monthCheckCount++
+            } catch (_: Exception) {
+            }
+        }
+
         val percentage = if (targetDays > 0) {
-            (monthCheckCount.toFloat() / targetDays * 100).toInt()
+            val raw = monthCheckCount.toFloat() / targetDays.toFloat() * 100f
+            raw.coerceIn(0f, 100f).toInt()
         } else {
             0
         }
 
-        // UI 업데이트
         tvMonthPercentage.text = "$percentage%"
         tvMonthCount.text = "${monthCheckCount}회"
 
-        Log.d("MonthlyDetail", "Stats - Month: $monthCheckCount, Target: $targetDays, Percentage: $percentage%")
+        Log.d(
+            "MonthlyDetail",
+            "Stats - MonthCheckCount=$monthCheckCount, TargetDays=$targetDays, Percentage=$percentage%"
+        )
     }
 
     // 날짜 하나를 Firebase에 토글 저장하는 함수

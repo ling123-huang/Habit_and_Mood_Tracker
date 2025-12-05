@@ -12,7 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.*
-
+import kotlin.math.roundToInt
 class HabitAdapter(private val habitList: MutableList<Habit>,private val onDelete: (Int) -> Unit) :
     RecyclerView.Adapter<HabitAdapter.HabitViewHolder>() {
 
@@ -44,13 +44,12 @@ class HabitAdapter(private val habitList: MutableList<Habit>,private val onDelet
         holder.tvHabitDays.text =
             if (habit.createdDate.isNotEmpty()) "Started ${habit.createdDate}" else "Started"
 
-        holder.tvStreakDays.text = "0/0"
+        holder.tvStreakDays.text = "0%"
         updateCheckState(holder, false)
 
         calculateProgressForHabit(habit) { displayText, isTodayChecked ->
-
             if (holder.adapterPosition == position) {
-                holder.tvStreakDays.text = displayText
+                holder.tvStreakDays.text = displayText  // 这里现在会收到 "xx%"
                 updateCheckState(holder, isTodayChecked)
             }
         }
@@ -60,6 +59,7 @@ class HabitAdapter(private val habitList: MutableList<Habit>,private val onDelet
             val intent = Intent(context, MonthlyDetail::class.java).apply {
                 putExtra("HABIT_ID", habit.id)
                 putExtra("HABIT_NAME", habit.name)
+                putExtra("HABIT_CREATED_DATE", habit.createdDate)
             }
             context.startActivity(intent)
         }
@@ -86,13 +86,12 @@ class HabitAdapter(private val habitList: MutableList<Habit>,private val onDelet
     ) {
         val user = FirebaseAuth.getInstance().currentUser
         if (user == null) {
-            callback("0/0", false)
+            callback("0%", false)
             return
         }
 
         val db = FirebaseFirestore.getInstance()
 
-        // checkins 전체 가져오기
         db.collection("users")
             .document(user.uid)
             .collection("habits")
@@ -101,17 +100,20 @@ class HabitAdapter(private val habitList: MutableList<Habit>,private val onDelet
             .get()
             .addOnSuccessListener { snapshot ->
                 val checkinDates: Set<String> = snapshot.documents.map { it.id }.toSet()
+
+                // 今天有没有打卡 -> 用来决定圆圈颜色
+                val todayKey = todayKey()
+                val isTodayChecked = checkinDates.contains(todayKey)
+
+                // 如果没有 createdDate，就没办法精确算，从简处理：
                 if (habit.createdDate.isEmpty()) {
-                    // 생성 날짜를 모르면 단순히 완료 횟수/완료 횟수 로 표시
                     val done = checkinDates.size
-                    val text = "$done/$done"
-                    val todayKey = todayKey()
-                    val isTodayChecked = checkinDates.contains(todayKey)
-                    callback(text, isTodayChecked)
+                    val percent = if (done > 0) 100 else 0
+                    callback("${percent}%", isTodayChecked)
                     return@addOnSuccessListener
                 }
 
-                // 1) createdDate 문자열("yyyy.MM.dd") → Date
+                // "yyyy.MM.dd" -> Date
                 val created = try {
                     SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
                         .parse(habit.createdDate)
@@ -121,31 +123,65 @@ class HabitAdapter(private val habitList: MutableList<Habit>,private val onDelet
 
                 if (created == null) {
                     val done = checkinDates.size
-                    val text = "$done/$done"
-                    val todayKey = todayKey()
-                    val isTodayChecked = checkinDates.contains(todayKey)
-                    callback(text, isTodayChecked)
+                    val percent = if (done > 0) 100 else 0
+                    callback("${percent}%", isTodayChecked)
                     return@addOnSuccessListener
                 }
 
-                // 2) 스케줄 요일 정보
+                // 当前年月
+                val now = Calendar.getInstance()
+                val currentYear = now.get(Calendar.YEAR)
+                val currentMonth = now.get(Calendar.MONTH)
+
+                // 本月 1 号
+                val monthStart = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, currentYear)
+                    set(Calendar.MONTH, currentMonth)
+                    set(Calendar.DAY_OF_MONTH, 1)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+
+                // 创建日期
+                val createdCal = Calendar.getInstance().apply { time = created }
+
+                // 从 “max(本月 1 日, 创建日)” 开始算
+                if (createdCal.after(monthStart)) {
+                    monthStart.time = createdCal.time
+                }
+
+                // 本月最后一天
+                val monthEnd = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, currentYear)
+                    set(Calendar.MONTH, currentMonth)
+                    set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+                    set(Calendar.HOUR_OF_DAY, 23)
+                    set(Calendar.MINUTE, 59)
+                    set(Calendar.SECOND, 59)
+                    set(Calendar.MILLISECOND, 999)
+                }
+
+                // 如果习惯是在这个月之后才创建的（未来），直接 0%
+                if (created.after(monthEnd.time)) {
+                    callback("0%", isTodayChecked)
+                    return@addOnSuccessListener
+                }
+
+                // 安排的星期信息
                 val scheduledDays = habit.selectedDays.map { it.lowercase(Locale.getDefault()) }
                 val treatAsEveryday =
                     scheduledDays.isEmpty() || scheduledDays.contains("everyday")
 
-                // 3) createdDate ~ 오늘까지 하루씩 증가하면서
-                //    그날이 "스케줄 요일"이면 total++,
-                //    그리고 checkins 안에 있으면 done++.
-                val cal = Calendar.getInstance()
-                val endDate = cal.time   // 오늘
-                cal.time = created
-
+                val cal = monthStart.clone() as Calendar
                 val keyFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                var total = 0
-                var done = 0
 
-                while (!cal.time.after(endDate)) {
-                    val dow = cal.get(Calendar.DAY_OF_WEEK) // 1: Sun ~ 7: Sat
+                var totalDays = 0   // 从创建日到本月最后一天，符合排程的天数
+                var doneDays = 0    // 其中打卡的天数
+
+                while (!cal.after(monthEnd)) {
+                    val dow = cal.get(Calendar.DAY_OF_WEEK)
                     val weekdayKey = when (dow) {
                         Calendar.SUNDAY -> "sun"
                         Calendar.MONDAY -> "mon"
@@ -157,30 +193,32 @@ class HabitAdapter(private val habitList: MutableList<Habit>,private val onDelet
                         else -> ""
                     }
 
-                    val isScheduled =
-                        treatAsEveryday || scheduledDays.contains(weekdayKey)
+                    val isScheduled = treatAsEveryday || scheduledDays.contains(weekdayKey)
 
                     if (isScheduled) {
-                        total++
+                        totalDays++
                         val dateKey = keyFormat.format(cal.time)
                         if (checkinDates.contains(dateKey)) {
-                            done++
+                            doneDays++
                         }
                     }
 
                     cal.add(Calendar.DAY_OF_MONTH, 1)
                 }
 
-                val todayKey = keyFormat.format(endDate)
-                val isTodayChecked = checkinDates.contains(todayKey)
+                val percent = if (totalDays > 0) {
+                    (doneDays.toFloat() / totalDays * 100).toInt()
+                } else {
+                    0
+                }
 
-                val display = if (total > 0) "$done/$total" else "0/0"
-                callback(display, isTodayChecked)
+                callback("${percent}%", isTodayChecked)
             }
             .addOnFailureListener {
-                callback("0/0", false)
+                callback("0%", false)
             }
     }
+
     // 오늘 날짜 key("yyyy-MM-dd")
     private fun todayKey(): String {
         val df = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())

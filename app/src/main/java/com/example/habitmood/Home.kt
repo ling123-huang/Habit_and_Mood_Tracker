@@ -1,27 +1,30 @@
 package com.example.habitmood
 
 import android.app.Activity
-import android.content.Intent
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import java.text.SimpleDateFormat
-import java.util.*
-import android.widget.TextView
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FieldValue
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.os.Bundle
 import android.Manifest
 import android.content.pm.PackageManager
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import android.os.Build
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.*
 
 class Home: AppCompatActivity() {
 
@@ -35,6 +38,18 @@ class Home: AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
 
+    private var selectedMood: Int? = null
+
+    private lateinit var btnMoodBad: TextView
+    private lateinit var btnMoodSad: TextView
+    private lateinit var btnMoodNatural: TextView
+    private lateinit var btnMoodGood: TextView
+    private lateinit var btnMoodVeryGood: TextView
+    private lateinit var tvCurrentMood: TextView
+    private lateinit var etMoodNote: TextInputEditText
+    private lateinit var btnSaveMood: MaterialButton
+
+
 
     // 초기 습관 목록(일시적)
     private val habitList = mutableListOf<Habit>()
@@ -47,6 +62,7 @@ class Home: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val granted = ContextCompat.checkSelfPermission(
                 this,
@@ -73,15 +89,19 @@ class Home: AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        setCurrentDate()
-        setUserName()
+        btnMoodBad = findViewById(R.id.btnMoodBad)
+        btnMoodSad = findViewById(R.id.btnMoodSad)
+        btnMoodNatural = findViewById(R.id.btnMoodNatural)
+        btnMoodGood = findViewById(R.id.btnMoodGood)
+        btnMoodVeryGood = findViewById(R.id.btnMoodVeryGood)
+        tvCurrentMood = findViewById(R.id.tvCurrentMood)
+        etMoodNote = findViewById(R.id.etMoodNote)
+        btnSaveMood = findViewById(R.id.btnSaveMood)
+
 
         habitAdapter = HabitAdapter(habitList) { position ->
-            if (position !in habitList.indices) return@HabitAdapter
-
+            val habit = habitList.getOrNull(position) ?: return@HabitAdapter
             val user = auth.currentUser ?: return@HabitAdapter
-            val habit = habitList[position]
-
             db.collection("users")
                 .document(user.uid)
                 .collection("habits")
@@ -102,9 +122,102 @@ class Home: AppCompatActivity() {
             startActivityForResult(intent, REQUEST_ADD_HABIT)
         }
         setupBottomNavigation()
+        setCurrentDate()
+        setUserName()
+
+        btnMoodBad.setOnClickListener {
+            selectedMood = 1
+            updateMoodUI()
+        }
+        btnMoodSad.setOnClickListener {
+            selectedMood = 2
+            updateMoodUI()
+        }
+        btnMoodNatural.setOnClickListener {
+            selectedMood = 3
+            updateMoodUI()
+        }
+        btnMoodGood.setOnClickListener {
+            selectedMood = 4
+            updateMoodUI()
+        }
+        btnMoodVeryGood.setOnClickListener {
+            selectedMood = 5
+            updateMoodUI()
+        }
+
+        btnSaveMood.setOnClickListener {
+            saveTodayMood()
+        }
+
         loadHabitsFromFirestore()
 
     }
+    private fun updateMoodUI() {
+        val moods = listOf(
+            btnMoodBad to 1,
+            btnMoodSad to 2,
+            btnMoodNatural to 3,
+            btnMoodGood to 4,
+            btnMoodVeryGood to 5
+        )
+
+        moods.forEach { (view, moodValue) ->
+            if (selectedMood == moodValue) {
+                view.alpha = 1.0f
+                view.scaleX = 1.2f
+                view.scaleY = 1.2f
+            } else {
+                view.alpha = 0.4f
+                view.scaleX = 1.0f
+                view.scaleY = 1.0f
+            }
+        }
+
+        tvCurrentMood.text = when (selectedMood) {
+            1 -> "Selected: 😭"
+            2 -> "Selected: 😥"
+            3 -> "Selected: 😐"
+            4 -> "Selected: 😄"
+            5 -> "Selected: 🤩"
+            else -> getString(R.string.select_a_mood)
+        }
+    }
+
+    private fun saveTodayMood() {
+        val user = auth.currentUser
+        if (user == null) {
+            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val mood = selectedMood
+        val note = etMoodNote.text?.toString() ?: ""
+
+        if (mood == null) {
+            Toast.makeText(this, "Please select a mood", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+        val data = hashMapOf(
+            "date" to todayKey,
+            "mood" to mood,
+            "note" to note,
+            "timestamp" to FieldValue.serverTimestamp()
+        )
+
+        db.collection("users")
+            .document(user.uid)
+            .collection("moods")
+            .document(todayKey)
+            .set(data)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Mood saved!", Toast.LENGTH_SHORT).show()
+            }
+    }
+
 
     private fun setUserName() {
         val user = auth.currentUser
@@ -220,10 +333,16 @@ class Home: AppCompatActivity() {
 
                     )
                     habitList.add(habit)
-                    if (isAlarmOn && alarmHour != null && alarmMinute != null) {
-                        scheduleHabitReminder(habit.id, habit.name, alarmHour, alarmMinute, selectedDays)
-                    }
 
+                    if (isAlarmOn && alarmHour != null && alarmMinute != null) {
+                        scheduleHabitReminder(
+                            habit.id,
+                            habit.name,
+                            alarmHour,
+                            alarmMinute,
+                            selectedDays
+                        )
+                    }
                 }
                 habitAdapter.notifyDataSetChanged()
                 updateTotalCount()
