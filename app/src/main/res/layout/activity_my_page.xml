@@ -48,25 +48,6 @@
                     android:padding="24dp"
                     android:gravity="center">
 
-                    <!-- 프로필 이미지 -->
-                    <FrameLayout
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_marginBottom="16dp">
-
-                        <View
-                            android:layout_width="100dp"
-                            android:layout_height="100dp"
-                            android:background="@drawable/circle_outer_unchecked"/>
-
-                        <ImageView
-                            android:id="@+id/ivProfileImage"
-                            android:layout_width="100dp"
-                            android:layout_height="100dp"
-                            android:src="@drawable/user"
-                            android:padding="24dp"
-                            app:tint="#006064"/>
-                    </FrameLayout>
 
                     <!-- 사용자 이름 -->
                     <TextView
@@ -89,28 +70,42 @@
                         android:textColor="#757575"
                         android:layout_marginBottom="16dp"/>
 
-                    <!-- 프로필 수정 버튼 -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnEditProfile"
-                        android:layout_width="wrap_content"
+                    <!-- Member for -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Edit Profile"
-                        android:textColor="@color/white"
-                        android:backgroundTint="#006064"
-                        app:cornerRadius="12dp"
-                        android:paddingStart="32dp"
-                        android:paddingEnd="32dp"/>
+                        android:orientation="horizontal"
+                        android:background="#F8F9FA"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
 
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Member for"
+                            android:textSize="14sp"
+                            android:textColor="@color/gray"/>
+
+                        <TextView
+                            android:id="@+id/tvMemberDays"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="45 days"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/green"/>
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 설정 및 옵션 카드 -->
+            <!-- 이번 달 최고 습관 카드 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="24dp"
+                app:cardCornerRadius="20dp"
                 app:cardElevation="0dp"
-                app:strokeColor="@color/light_gray"
+                app:strokeColor="#E0E0E0"
                 app:strokeWidth="1dp"
                 android:backgroundTint="@color/white"
                 android:layout_marginBottom="16dp">
@@ -119,135 +114,146 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="24dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="This Month's Best Habit"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:layout_marginBottom="12dp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvBestHabitName"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Drink Water"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/green"
+                                android:layout_marginBottom="4dp"/>
+
+                            <TextView
+                                android:id="@+id/tvBestHabitRate"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="95% completion"
+                                android:textSize="14sp"
+                                android:textColor="@color/gray"/>
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🏆"
+                            android:textSize="40sp"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <!-- 설정 카드 -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#E0E0E0"
+                app:strokeWidth="1dp"
+                android:backgroundTint="@color/white"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Settings"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="@color/black"
                         android:layout_marginBottom="16dp"/>
 
-                    <!-- 알림 설정 -->
+                    <!-- Daily Reminder -->
                     <LinearLayout
-                        android:id="@+id/layoutNotifications"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:padding="12dp"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true">
+                        android:paddingVertical="12dp">
 
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/notification"
-                            app:tint="#757575"/>
-
-                        <TextView
+                        <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Notifications"
-                            android:textSize="16sp"
-                            android:textColor="@color/black"
-                            android:layout_marginStart="16dp"/>
+                            android:orientation="vertical">
 
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/right"
-                            app:tint="#BDBDBD"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Daily Habit Reminder"
+                                android:textSize="15sp"
+                                android:textColor="@color/black"
+                                android:layout_marginBottom="2dp"/>
+
+                            <TextView
+                                android:id="@+id/tvReminderTime"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="9:00 PM"
+                                android:textSize="12sp"
+                                android:textColor="@color/gray"/>
+                        </LinearLayout>
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchDailyReminder"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:theme="@style/GreenSwitchTheme"/>
                     </LinearLayout>
 
+                    <!-- Change Time Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnChangeTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Change Reminder Time"
+                        android:textSize="14sp"
+                        android:textColor="@color/green"
+                        android:backgroundTint="@color/white"
+                        app:strokeColor="@color/green"
+                        app:strokeWidth="1dp"
+                        app:cornerRadius="12dp"
+                        android:layout_marginBottom="16dp"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="#F0F0F0"
-                        android:layout_marginStart="52dp"/>
-
-                    <!-- 테마 설정 -->
-                    <LinearLayout
-                        android:id="@+id/layoutTheme"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="12dp"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/notification"
-                            app:tint="#757575"/>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Theme"
-                            android:textSize="16sp"
-                            android:textColor="@color/black"
-                            android:layout_marginStart="16dp"/>
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/right"
-                            app:tint="#BDBDBD"/>
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#F0F0F0"
-                        android:layout_marginStart="52dp"/>
-
-                    <!-- 데이터 백업 -->
-                    <LinearLayout
-                        android:id="@+id/layoutBackup"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="12dp"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/notification"
-                            app:tint="#757575"/>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Backup and Restore"
-                            android:textSize="16sp"
-                            android:textColor="@color/black"
-                            android:layout_marginStart="16dp"/>
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/right"
-                            app:tint="#BDBDBD"/>
-                    </LinearLayout>
+                        android:background="#E0E0E0"
+                        android:layout_marginVertical="8dp"/>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 로그아웃 버튼 -->
+            <!-- Logout Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
@@ -255,12 +261,10 @@
                 android:text="Logout"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#F44336"
-                android:backgroundTint="@color/white"
+                android:textColor="@color/white"
+                android:backgroundTint="#FF5252"
                 app:cornerRadius="12dp"
-                app:strokeColor="#F44336"
-                app:strokeWidth="2dp"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginTop="8dp"/>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

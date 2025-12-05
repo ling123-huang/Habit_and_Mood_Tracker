@@ -56,16 +56,16 @@
                 android:layout_gravity="center"
                 android:background="@drawable/circle_inner"/>
 
-            <!-- 누적 일수 텍스트 -->
+            <!-- 월 달성율-->
             <TextView
                 android:id="@+id/tvStreakDays"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="0"
-                android:textSize="25sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                android:textColor="@color/black"/>
+                android:textColor="@color/green"/>
 
         </FrameLayout>
 
