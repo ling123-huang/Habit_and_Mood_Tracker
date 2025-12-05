@@ -5,7 +5,6 @@ import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,6 +18,9 @@ class MonthlyDetail : AppCompatActivity() {
 
     private lateinit var calendarRecyclerView: RecyclerView
     private lateinit var tvMonthYear: TextView
+    private lateinit var tvMonthPercentage: TextView
+    private lateinit var tvMonthCount: TextView
+    private lateinit var tvTotalCount: TextView
     private lateinit var btnPrevMonth: ImageButton
     private lateinit var btnNextMonth: ImageButton
     private lateinit var btnBack: ImageButton
@@ -28,9 +30,8 @@ class MonthlyDetail : AppCompatActivity() {
     private val calendar = Calendar.getInstance()
     private val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.ENGLISH)
 
-    // 임시: 체크된 날짜들 (백엔드에서 가져올 데이터)
+    // 체크된 날짜들 (Firebase에서 가져올 데이터)
     private val checkedDates = mutableSetOf<String>()
-
 
     // Firebase
     private lateinit var auth: FirebaseAuth
@@ -48,13 +49,7 @@ class MonthlyDetail : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
 
         // View 초기화
-        calendarRecyclerView = findViewById(R.id.calendarRecyclerView)
-        tvMonthYear = findViewById(R.id.tvMonthYear)
-        btnPrevMonth = findViewById(R.id.btnPrevMonth)
-        btnNextMonth = findViewById(R.id.btnNextMonth)
-        btnBack = findViewById(R.id.btnBack)
-        tvHabitTitle = findViewById(R.id.tvHabitTitle)
-        btnComplete = findViewById(R.id.btnComplete)
+        initViews()
 
         Log.d("MonthlyDetail", "Views initialized")
 
@@ -71,6 +66,24 @@ class MonthlyDetail : AppCompatActivity() {
         // 현재 달의 체크 데이터 로드 + 달력 표시
         loadCheckedDatesForCurrentMonth()
 
+        // 버튼 리스너 설정
+        setupListeners()
+    }
+
+    private fun initViews() {
+        calendarRecyclerView = findViewById(R.id.calendarRecyclerView)
+        tvMonthYear = findViewById(R.id.tvMonthYear)
+        tvMonthPercentage = findViewById(R.id.tvMonthPercentage)
+        tvMonthCount = findViewById(R.id.tvMonthCount)
+        tvTotalCount = findViewById(R.id.tvTotalCount)
+        btnPrevMonth = findViewById(R.id.btnPrevMonth)
+        btnNextMonth = findViewById(R.id.btnNextMonth)
+        btnBack = findViewById(R.id.btnBack)
+        tvHabitTitle = findViewById(R.id.tvHabitTitle)
+        btnComplete = findViewById(R.id.btnComplete)
+    }
+
+    private fun setupListeners() {
         // 이전 달 버튼
         btnPrevMonth.setOnClickListener {
             calendar.add(Calendar.MONTH, -1)
@@ -105,6 +118,7 @@ class MonthlyDetail : AppCompatActivity() {
 
         if (user == null || localHabitId == null) {
             // 로그인 안 되어 있으면 로컬 표시만
+            updateStatistics()
             return
         }
 
@@ -119,6 +133,7 @@ class MonthlyDetail : AppCompatActivity() {
         val startKey = keyFormat.format(tempStart.time)
         val endKey = keyFormat.format(tempEnd.time)
 
+        // 현재 월의 체크인 데이터만 가져오기
         db.collection("users")
             .document(user.uid)
             .collection("habits")
@@ -133,10 +148,66 @@ class MonthlyDetail : AppCompatActivity() {
                     checkedDates.add(dateStr)
                 }
                 updateCalendar()
+                updateStatistics()
+            }
+
+        // 전체 누적 횟수를 위한 별도 쿼리
+        loadTotalCheckCount()
+    }
+
+    private fun loadTotalCheckCount() {
+        val user = auth.currentUser
+        val localHabitId = habitId
+
+        if (user == null || localHabitId == null) {
+            return
+        }
+
+        db.collection("users")
+            .document(user.uid)
+            .collection("habits")
+            .document(localHabitId)
+            .collection("checkins")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val totalCount = snapshot.size()
+                tvTotalCount.text = "${totalCount}회"
             }
     }
 
-    // 날짜 하나를 Firestore에 토글 저장하는 함수
+    private fun updateStatistics() {
+        // 현재 월의 체크 횟수
+        val monthCheckCount = checkedDates.size
+
+        // 현재 월의 총 일수
+        val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+
+        // 현재 날짜가 이번 달이면 오늘까지만, 아니면 전체 일수
+        val today = Calendar.getInstance()
+        val targetDays = if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+            calendar.get(Calendar.MONTH) == today.get(Calendar.MONTH)) {
+            today.get(Calendar.DAY_OF_MONTH)
+        } else if (calendar.after(today)) {
+            0 // 미래 달은 0
+        } else {
+            daysInMonth // 과거 달은 전체 일수
+        }
+
+        // 달성률 계산
+        val percentage = if (targetDays > 0) {
+            (monthCheckCount.toFloat() / targetDays * 100).toInt()
+        } else {
+            0
+        }
+
+        // UI 업데이트
+        tvMonthPercentage.text = "$percentage%"
+        tvMonthCount.text = "${monthCheckCount}회"
+
+        Log.d("MonthlyDetail", "Stats - Month: $monthCheckCount, Target: $targetDays, Percentage: $percentage%")
+    }
+
+    // 날짜 하나를 Firebase에 토글 저장하는 함수
     private fun toggleCheckForDate(dateKey: String) {
         val user = auth.currentUser
         val localHabitId = habitId
@@ -149,6 +220,7 @@ class MonthlyDetail : AppCompatActivity() {
                 checkedDates.add(dateKey)
             }
             updateCalendar()
+            updateStatistics()
             return
         }
 
@@ -165,6 +237,8 @@ class MonthlyDetail : AppCompatActivity() {
                 .addOnSuccessListener {
                     checkedDates.remove(dateKey)
                     updateCalendar()
+                    updateStatistics()
+                    loadTotalCheckCount() // 총 누적도 업데이트
                 }
         } else {
             // 없으면 새로 생성
@@ -176,6 +250,8 @@ class MonthlyDetail : AppCompatActivity() {
                 .addOnSuccessListener {
                     checkedDates.add(dateKey)
                     updateCalendar()
+                    updateStatistics()
+                    loadTotalCheckCount() // 총 누적도 업데이트
                 }
         }
     }
