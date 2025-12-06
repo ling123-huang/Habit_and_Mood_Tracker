@@ -16,9 +16,7 @@ class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val habitName = intent.getStringExtra("HABIT_NAME") ?: "Your habit"
         val habitId = intent.getStringExtra("HABIT_ID") ?: ""
-        val selectedDays =
-            intent.getStringArrayListExtra("SELECTED_DAYS") ?: arrayListOf()
-
+        val habitMessage = "It's time to do your habit! ✅"
         val channelId = "habit_reminders"
         val manager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -38,10 +36,13 @@ class ReminderReceiver : BroadcastReceiver() {
         }
 
         //알림 클릭 시 Home 화면으로 이동
-        val openIntent = Intent(context, Home::class.java).apply {
+        val openIntent = Intent(context, MonthlyDetail::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-        val pendingIntent = PendingIntent.getActivity(
+            putExtra("HABIT_ID", habitId)
+            putExtra("HABIT_NAME", habitName)
+       }
+
+        val contentPendingIntent = PendingIntent.getActivity(
             context,
             habitId.hashCode(),
             openIntent,
@@ -50,12 +51,14 @@ class ReminderReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("Time for your habit")
-            .setContentText(habitName)
+            .setContentTitle(habitName)
+            .setContentText(habitMessage)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(habitMessage))
             .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
+            .setContentIntent(contentPendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
+
 
         manager.notify(habitId.hashCode(), notification)
     }

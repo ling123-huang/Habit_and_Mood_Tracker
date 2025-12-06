@@ -418,6 +418,8 @@ class Home: AppCompatActivity() {
             putExtra("HABIT_ID", habitId)
             putExtra("HABIT_NAME", habitName)
             putStringArrayListExtra("SELECTED_DAYS", ArrayList(selectedDays))
+
+            putExtra("HABIT_MESSAGE", "Time for \"$habitName\" 🙌")
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
@@ -432,10 +434,13 @@ class Home: AppCompatActivity() {
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
+
             if (timeInMillis <= System.currentTimeMillis()) {
                 add(Calendar.DAY_OF_MONTH, 1)
             }
         }
+
+        alarmManager.cancel(pendingIntent)
 
         alarmManager.setRepeating(
             AlarmManager.RTC_WAKEUP,
@@ -444,6 +449,8 @@ class Home: AppCompatActivity() {
             pendingIntent
         )
     }
+
+
 
     override fun onResume() {
         super.onResume()
@@ -461,10 +468,8 @@ class Home: AppCompatActivity() {
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    // 1. 저장된 기분 가져오기 (1~5)
                     val savedMood = document.getLong("mood")?.toInt()
 
-                    // 2. 기분이 있다면 UI에 반영
                     if (savedMood != null && savedMood in 1..5) {
                         selectedMood = savedMood
                         updateMoodUI() // 아이콘 크기 키우고 투명도 조절하는 함수 호출

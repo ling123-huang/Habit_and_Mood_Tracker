@@ -9,8 +9,7 @@ import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
 
 class BootReceiver : BroadcastReceiver() {
 
@@ -22,7 +21,6 @@ class BootReceiver : BroadcastReceiver() {
         try {
             FirebaseApp.initializeApp(context)
         } catch (_: Exception) {
-            // 이미 초기화되었다면 무시
         }
 
         val auth = FirebaseAuth.getInstance()
@@ -38,7 +36,7 @@ class BootReceiver : BroadcastReceiver() {
         db.collection("users")
             .document(user.uid)
             .collection("habits")
-            .whereEqualTo("isAlarmOn", true)
+            .whereEqualTo("isAlarmOn", true)   // 只恢复开着提醒的习惯
             .get()
             .addOnSuccessListener { snapshot ->
                 for (doc in snapshot) {
@@ -47,11 +45,6 @@ class BootReceiver : BroadcastReceiver() {
 
                     val alarmHour = doc.getLong("alarmHour")?.toInt()
                     val alarmMinute = doc.getLong("alarmMinute")?.toInt()
-
-                    @Suppress("UNCHECKED_CAST")
-                    val selectedDays =
-                        (doc.get("selectedDays") as? List<*>)?.filterIsInstance<String>()
-                            ?: emptyList()
 
                     if (alarmHour != null && alarmMinute != null) {
                         Log.d(
@@ -63,8 +56,7 @@ class BootReceiver : BroadcastReceiver() {
                             habitId,
                             habitName,
                             alarmHour,
-                            alarmMinute,
-                            selectedDays
+                            alarmMinute
                         )
                     }
                 }
@@ -79,15 +71,14 @@ class BootReceiver : BroadcastReceiver() {
         habitId: String,
         habitName: String,
         hour: Int,
-        minute: Int,
-        selectedDays: List<String>
+        minute: Int
     ) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         val intent = Intent(context, ReminderReceiver::class.java).apply {
             putExtra("HABIT_ID", habitId)
             putExtra("HABIT_NAME", habitName)
-            putStringArrayListExtra("SELECTED_DAYS", ArrayList(selectedDays))
+            putExtra("HABIT_MESSAGE", "Time for \"$habitName\" 🙌")
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
@@ -102,13 +93,14 @@ class BootReceiver : BroadcastReceiver() {
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
-            // 부팅 직후 시간이 이미 지난 경우 내일로 미룸
+
             if (timeInMillis <= System.currentTimeMillis()) {
                 add(Calendar.DAY_OF_MONTH, 1)
             }
         }
 
-        // 매일 같은 시간에 반복 알람
+        alarmManager.cancel(pendingIntent)
+
         alarmManager.setRepeating(
             AlarmManager.RTC_WAKEUP,
             cal.timeInMillis,
@@ -117,3 +109,4 @@ class BootReceiver : BroadcastReceiver() {
         )
     }
 }
+

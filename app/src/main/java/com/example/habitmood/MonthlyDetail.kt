@@ -239,6 +239,7 @@ class MonthlyDetail : AppCompatActivity() {
             }
         }
 
+        // ── 3. 算百分比，并限制 0~100% ────────────────────────────
         val percentage = if (targetDays > 0) {
             val raw = monthCheckCount.toFloat() / targetDays.toFloat() * 100f
             raw.coerceIn(0f, 100f).toInt()
@@ -254,6 +255,7 @@ class MonthlyDetail : AppCompatActivity() {
             "Stats - MonthCheckCount=$monthCheckCount, TargetDays=$targetDays, Percentage=$percentage%"
         )
     }
+
 
     // 날짜 하나를 Firebase에 토글 저장하는 함수
     private fun toggleCheckForDate(dateKey: String) {
