@@ -51,7 +51,9 @@ class CalendarDayAdapter(
                 holder.viewDayBackground.visibility = View.INVISIBLE
                 holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.black))
                 holder.itemView.setOnClickListener(null) // 이모지 날짜는 MonthlyDetail에서 클릭 불가
-                holder.itemView.isClickable = false
+                holder.itemView.setOnClickListener {
+                    onDayClick(day)
+                }
             } else {
                 // MonthlyDetail (습관 체크)
                 holder.tvDayNumber.text = day.dayNumber.toString()

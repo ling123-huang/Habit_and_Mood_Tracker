@@ -307,6 +307,8 @@ class Home: AppCompatActivity() {
     private fun updateTotalCount() {
         tvTotalCount.text = "Total: ${habitList.size}"
     }
+    // Home.kt의 loadHabitsFromFirestore() 함수만 교체하세요
+
     private fun loadHabitsFromFirestore() {
         val user = auth.currentUser ?: return
 
@@ -318,6 +320,11 @@ class Home: AppCompatActivity() {
             .addOnSuccessListener { snapshot ->
                 habitList.clear()
                 val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
+                val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+                // 임시 리스트: 체크 상태를 포함한 습관 데이터
+                val tempHabits = mutableListOf<Pair<Habit, Boolean>>()
+
                 for (doc in snapshot) {
                     val name = doc.getString("name") ?: ""
                     val isAlarmOn = doc.getBoolean("isAlarmOn") ?: false
@@ -339,9 +346,7 @@ class Home: AppCompatActivity() {
                         alarmMinute = alarmMinute,
                         selectedDays = selectedDays,
                         createdDate = createdDate
-
                     )
-                    habitList.add(habit)
 
                     if (isAlarmOn && alarmHour != null && alarmMinute != null) {
                         scheduleHabitReminder(
@@ -352,9 +357,54 @@ class Home: AppCompatActivity() {
                             selectedDays
                         )
                     }
+
+                    // 오늘 체크 여부 확인을 위한 임시 저장
+                    tempHabits.add(Pair(habit, false))
                 }
-                habitAdapter.notifyDataSetChanged()
-                updateTotalCount()
+
+                // 각 습관의 오늘 체크 상태 확인
+                var completedCount = 0
+                tempHabits.forEachIndexed { index, (habit, _) ->
+                    db.collection("users")
+                        .document(user.uid)
+                        .collection("habits")
+                        .document(habit.id)
+                        .collection("checkins")
+                        .document(todayKey)
+                        .get()
+                        .addOnSuccessListener { doc ->
+                            val isChecked = doc.exists()
+                            tempHabits[index] = Pair(habit, isChecked)
+
+                            completedCount++
+
+                            // 모든 습관의 체크 상태를 확인했으면 정렬
+                            if (completedCount == tempHabits.size) {
+                                // 체크 안된 습관 먼저, 체크된 습관 나중에
+                                val unchecked = tempHabits.filter { !it.second }.map { it.first }
+                                val checked = tempHabits.filter { it.second }.map { it.first }
+
+                                habitList.clear()
+                                habitList.addAll(unchecked)
+
+                                // 구분선 추가 (체크된 습관이 있을 때만)
+                                if (checked.isNotEmpty()) {
+                                    // 구분선용 더미 습관 추가
+                                    habitList.add(Habit(id = "DIVIDER", name = "TODAY COMPLETE"))
+                                    habitList.addAll(checked)
+                                }
+
+                                habitAdapter.notifyDataSetChanged()
+                                updateTotalCount()
+                            }
+                        }
+                }
+
+                // 습관이 없는 경우 즉시 업데이트
+                if (tempHabits.isEmpty()) {
+                    habitAdapter.notifyDataSetChanged()
+                    updateTotalCount()
+                }
             }
     }
 

@@ -2,10 +2,10 @@
     <string name="app_name">Habit&amp;Mood</string>
     <string name="habit_amp_mood"><![CDATA[Habit & Mood \nTrack]]></string>
     <string name="bad">😭</string>
-    <string name="sad">😥</string>
+    <string name="sad">😔</string>
     <string name="natural">😐</string>
-    <string name="good">😄</string>
-    <string name="very_good">🤩</string>
+    <string name="good">😊</string>
+    <string name="very_good">😍</string>
     <string name="mood_check">How are you feeling today?</string>
     <string name="select_a_mood">Select a mood</string>
     <string name="total_count_format">Total: %d</string>

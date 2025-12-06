@@ -65,10 +65,6 @@ class MonthlyDetail : AppCompatActivity() {
         habitCreatedDate = intent.getStringExtra("HABIT_CREATED_DATE")   // 新增
         tvHabitTitle.text = habitName
 
-
-        //Log.d("MonthlyDetail", "Habit name: $habitName")
-        //오늘 날짜로 초기화
-        updateCompleteButtonText()
         // 현재 달의 체크 데이터 로드 + 달력 표시
         loadCheckedDatesForCurrentMonth()
         setupListeners()
@@ -109,11 +105,6 @@ class MonthlyDetail : AppCompatActivity() {
         btnComplete.setOnClickListener {
             toggleCheckForDate(selectedDate)
         }
-    }
-
-    //사용자가 뭘 선택했는지 불러오기
-    private fun updateCompleteButtonText() {
-        btnComplete.text = "Check/Uncheck ($selectedDate)"
     }
 
     private fun loadCheckedDatesForCurrentMonth() {
@@ -157,6 +148,7 @@ class MonthlyDetail : AppCompatActivity() {
                 }
                 updateCalendar()
                 updateStatistics()
+                updateCompleteButtonText()
             }
 
         // 전체 누적 횟수를 위한 별도 쿼리
@@ -179,7 +171,7 @@ class MonthlyDetail : AppCompatActivity() {
             .get()
             .addOnSuccessListener { snapshot ->
                 val totalCount = snapshot.size()
-                tvTotalCount.text = "${totalCount}회"
+                tvTotalCount.text = "${totalCount}days"
             }
     }
 
@@ -255,7 +247,7 @@ class MonthlyDetail : AppCompatActivity() {
         }
 
         tvMonthPercentage.text = "$percentage%"
-        tvMonthCount.text = "${monthCheckCount}회"
+        tvMonthCount.text = "${monthCheckCount}days"
 
         Log.d(
             "MonthlyDetail",
@@ -294,7 +286,8 @@ class MonthlyDetail : AppCompatActivity() {
                     checkedDates.remove(dateKey)
                     updateCalendar()
                     updateStatistics()
-                    loadTotalCheckCount() // 총 누적도 업데이트
+                    loadTotalCheckCount()
+                    updateCompleteButtonText()
                 }
         } else {
             // 없으면 새로 생성
@@ -307,12 +300,12 @@ class MonthlyDetail : AppCompatActivity() {
                     checkedDates.add(dateKey)
                     updateCalendar()
                     updateStatistics()
-                    loadTotalCheckCount() // 총 누적도 업데이트
+                    loadTotalCheckCount()
+                    updateCompleteButtonText()
                 }
         }
     }
 
-    // MonthlyDetail.kt
     // 달력 전체를 다시 그리는 함수
     private fun updateCalendar() {
         // 월/년 표시 업데이트
@@ -329,7 +322,7 @@ class MonthlyDetail : AppCompatActivity() {
             // [수정] isAvailable 조건 추가: 미래 날짜나 생성일 이전 날짜는 선택 불가
             if (day.date.isNotBlank() && day.isAvailable) {
                 selectedDate = day.date
-                updateCompleteButtonText() // [추가] 선택된 날짜로 버튼 텍스트 업데이트
+                updateCompleteButtonText()
                 updateCalendar()
             }
         }
@@ -338,7 +331,6 @@ class MonthlyDetail : AppCompatActivity() {
         Log.d("MonthlyDetail", "Adapter set with ${adapter.itemCount} items")
     }
 
-    // MonthlyDetail.kt
     private fun generateCalendarDays(): List<CalendarDay> {
         val days = mutableListOf<CalendarDay>()
 
@@ -441,5 +433,17 @@ class MonthlyDetail : AppCompatActivity() {
         }
 
         return days
+    }
+
+    private fun updateCompleteButtonText() {
+        if (checkedDates.contains(selectedDate)) {
+            // 이미 체크된 날짜라면 'Undo'& 회색 버튼
+            btnComplete.text = "Undo"
+            btnComplete.backgroundTintList = getColorStateList(android.R.color.darker_gray)
+        } else {
+            // 체크 안 된 날짜라면 'Complete' & 초록색 버튼
+            btnComplete.text = "Complete"
+            btnComplete.backgroundTintList = getColorStateList(R.color.green)
+        }
     }
 }

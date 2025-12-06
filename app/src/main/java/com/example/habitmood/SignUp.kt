@@ -74,7 +74,7 @@ class SignUp : AppCompatActivity() {
         }
 
         tvGoToLogin.setOnClickListener {
-            finish() // 로그인 화면으로 돌아가기
+            finish()
         }
     }
 }
