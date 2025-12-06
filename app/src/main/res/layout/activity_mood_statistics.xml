@@ -406,9 +406,7 @@
                 app:cardElevation="0dp"
                 app:strokeColor="#E0E0E0"
                 app:strokeWidth="1dp"
-                android:backgroundTint="@color/white"
-
-                android:layout_marginBottom="16dp">
+                android:backgroundTint="@color/white">
 
                 <include
                     android:id="@+id/includedCalendar"

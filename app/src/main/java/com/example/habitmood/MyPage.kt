@@ -23,19 +23,29 @@ import java.util.concurrent.TimeUnit
 
 class MyPage : AppCompatActivity() {
 
+    // UI 변수
     private lateinit var tvUserName: TextView
     private lateinit var tvUserEmail: TextView
-    private lateinit var tvMemberDays: TextView
+
+    // Best Habit 관련
     private lateinit var tvBestHabitName: TextView
     private lateinit var tvBestHabitRate: TextView
+
+    // Mood of the Month 관련 (새로 추가됨)
+    private lateinit var tvTopMoodName: TextView
+    private lateinit var tvTopMoodCount: TextView
+    private lateinit var tvTopMoodEmoji: TextView
+
+    // 설정 관련
     private lateinit var tvReminderTime: TextView
-    private lateinit var tvThemeValue: TextView
     private lateinit var switchDailyReminder: SwitchMaterial
     private lateinit var btnChangeTime: MaterialButton
     private lateinit var btnLogout: MaterialButton
-    private lateinit var layoutTheme: View
+    private lateinit var tvTotalHabits: TextView
+    // 하단 네비게이션
     private lateinit var bottomNavigationView: BottomNavigationView
 
+    // Firebase 및 저장소
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var prefs: SharedPreferences
@@ -55,23 +65,34 @@ class MyPage : AppCompatActivity() {
         initViews()
         loadSettings()
         loadUserData()
-        loadMemberDays()
         loadBestHabit()
+        loadMoodOfTheMonth()
         setupListeners()
         setupBottomNavigation()
     }
 
     private fun initViews() {
+        tvTotalHabits = findViewById(R.id.tvTotalHabits)
+        // 프로필
         tvUserName = findViewById(R.id.tvUserName)
         tvUserEmail = findViewById(R.id.tvUserEmail)
-        tvMemberDays = findViewById(R.id.tvMemberDays)
+
+        // Best Habit (XML ID와 일치시킴)
         tvBestHabitName = findViewById(R.id.tvBestHabitName)
         tvBestHabitRate = findViewById(R.id.tvBestHabitRate)
+
+        // Mood of the Month
+        tvTopMoodName = findViewById(R.id.tvTopMoodName)
+        tvTopMoodCount = findViewById(R.id.tvTopMoodCount)
+        tvTopMoodEmoji = findViewById(R.id.tvTopMoodEmoji)
+
+        // 설정
         tvReminderTime = findViewById(R.id.tvReminderTime)
         switchDailyReminder = findViewById(R.id.switchDailyReminder)
         btnChangeTime = findViewById(R.id.btnChangeTime)
         btnLogout = findViewById(R.id.btnLogout)
-        //layoutTheme = findViewById(R.id.layoutTheme)
+
+        // 네비게이션
         bottomNavigationView = findViewById(R.id.bottomAppBar)
     }
 
@@ -101,7 +122,6 @@ class MyPage : AppCompatActivity() {
                 .setPositiveButton("Logout") { _, _ ->
                     auth.signOut()
                     Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show()
-                    // 로그인 화면으로 이동
                     val intent = Intent(this, Login::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(intent)
@@ -117,19 +137,19 @@ class MyPage : AppCompatActivity() {
         reminderHour = prefs.getInt("reminder_hour", 21)
         reminderMinute = prefs.getInt("reminder_minute", 0)
 
-        val amPm = if (reminderHour < 12) "AM" else "PM"
-        val hour12 = if (reminderHour > 12) reminderHour - 12
-        else if (reminderHour == 0) 12
-        else reminderHour
-        tvReminderTime.text = String.format("%d:%02d %s", hour12, reminderMinute, amPm)
+        updateTimeUI(reminderHour, reminderMinute)
 
         // 알림 활성화 상태
         val isReminderEnabled = prefs.getBoolean("reminder_enabled", false)
         switchDailyReminder.isChecked = isReminderEnabled
+    }
 
-        // 테마
-        val theme = prefs.getString("theme", "Light") ?: "Light"
-        tvThemeValue.text = theme
+    private fun updateTimeUI(hour: Int, minute: Int) {
+        val amPm = if (hour < 12) "AM" else "PM"
+        val hour12 = if (hour > 12) hour - 12
+        else if (hour == 0) 12
+        else hour
+        tvReminderTime.text = String.format("%d:%02d %s", hour12, minute, amPm)
     }
 
     private fun showTimePickerDialog() {
@@ -146,12 +166,7 @@ class MyPage : AppCompatActivity() {
                     .apply()
 
                 // UI 업데이트
-                val amPm = if (hourOfDay < 12) "AM" else "PM"
-                val hour12 = if (hourOfDay > 12) hourOfDay - 12
-                else if (hourOfDay == 0) 12
-                else hourOfDay
-                val timeString = String.format("%d:%02d %s", hour12, minute, amPm)
-                tvReminderTime.text = timeString
+                updateTimeUI(hourOfDay, minute)
 
                 // 알림 재설정
                 if (switchDailyReminder.isChecked) {
@@ -173,7 +188,7 @@ class MyPage : AppCompatActivity() {
         val intent = Intent(this, ReminderReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
             this,
-            9999, // 고유 ID
+            9999,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -184,7 +199,6 @@ class MyPage : AppCompatActivity() {
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
 
-            // 오늘 시간이 지났으면 내일로
             if (timeInMillis <= System.currentTimeMillis()) {
                 add(Calendar.DAY_OF_MONTH, 1)
             }
@@ -245,31 +259,8 @@ class MyPage : AppCompatActivity() {
         }
     }
 
-    private fun loadMemberDays() {
-        val user = auth.currentUser ?: return
-
-        db.collection("users")
-            .document(user.uid)
-            .get()
-            .addOnSuccessListener { document ->
-                val createdAt = document.getTimestamp("createdAt")
-                if (createdAt != null) {
-                    val days = TimeUnit.MILLISECONDS.toDays(
-                        System.currentTimeMillis() - createdAt.toDate().time
-                    )
-                    tvMemberDays.text = "$days days"
-                } else {
-                    tvMemberDays.text = "New member"
-                }
-            }
-            .addOnFailureListener {
-                tvMemberDays.text = "-"
-            }
-    }
-
     private fun loadBestHabit() {
         val user = auth.currentUser ?: return
-
         val calendar = Calendar.getInstance()
         val currentMonth = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(calendar.time)
 
@@ -278,14 +269,24 @@ class MyPage : AppCompatActivity() {
             .collection("habits")
             .get()
             .addOnSuccessListener { habitsSnapshot ->
+                val totalCount = habitsSnapshot.size()
+                tvTotalHabits.text = totalCount.toString()
+
                 var bestHabit: String? = null
                 var bestRate = 0
+                var processedCount = 0
+                val totalHabits = habitsSnapshot.size()
+
+                if (totalHabits == 0) {
+                    tvBestHabitName.text = "No habits yet"
+                    tvBestHabitRate.text = "Start tracking!"
+                    return@addOnSuccessListener
+                }
 
                 for (habitDoc in habitsSnapshot) {
                     val habitName = habitDoc.getString("name") ?: continue
                     val habitId = habitDoc.id
 
-                    // 이번 달 체크인 개수 확인 (비동기이므로 복잡함, 간단히 처리)
                     db.collection("users")
                         .document(user.uid)
                         .collection("habits")
@@ -294,25 +295,98 @@ class MyPage : AppCompatActivity() {
                         .get()
                         .addOnSuccessListener { checkinsSnapshot ->
                             val thisMonthCheckins = checkinsSnapshot.documents.count {
-                                it.getString("date")?.startsWith(currentMonth) == true
+                                it.getString("date")?.startsWith(currentMonth) == true ||
+                                        it.id.startsWith(currentMonth)
                             }
 
                             val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
                             val rate = (thisMonthCheckins * 100) / daysInMonth
 
-                            if (rate > bestRate) {
+                            if (rate >= bestRate) {
                                 bestRate = rate
                                 bestHabit = habitName
-                                tvBestHabitName.text = bestHabit ?: "No habits"
-                                tvBestHabitRate.text = "$bestRate% completion"
+                            }
+
+                            processedCount++
+                            if (processedCount == totalHabits) {
+                                if (bestHabit != null && bestRate > 0) {
+                                    tvBestHabitName.text = bestHabit
+                                    tvBestHabitRate.text = "$bestRate% completion"
+                                } else {
+                                    tvBestHabitName.text = bestHabit ?: "Keep going!"
+                                    tvBestHabitRate.text = "0% completion"
+                                }
                             }
                         }
                 }
+            }
+    }
+    private fun loadMoodOfTheMonth() {
+        val user = auth.currentUser ?: return
 
-                if (habitsSnapshot.isEmpty) {
-                    tvBestHabitName.text = "No habits yet"
-                    tvBestHabitRate.text = "Start tracking!"
+        // 현재 년/월 구하기
+        val currentCal = Calendar.getInstance()
+        val yearNow = currentCal.get(Calendar.YEAR)
+        val monthNow = currentCal.get(Calendar.MONTH)
+
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+        db.collection("users")
+            .document(user.uid)
+            .collection("moods")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                // index 0:Bad(1) ~ 4:VeryGood(5)
+                val counts = IntArray(5)
+
+                for (doc in snapshot) {
+                    val dateStr = doc.getString("date") ?: continue
+                    val mood = doc.getLong("mood")?.toInt() ?: continue
+
+                    if (mood !in 1..5) continue
+
+                    val date = try {
+                        sdf.parse(dateStr)
+                    } catch (e: Exception) {
+                        null
+                    } ?: continue
+
+                    val c = Calendar.getInstance().apply { time = date }
+
+                    // 이번 달 데이터만 집계
+                    if (c.get(Calendar.YEAR) == yearNow && c.get(Calendar.MONTH) == monthNow) {
+                        counts[mood - 1]++
+                    }
                 }
+
+                // 제일 많이 나온 기분 찾기
+                var maxIndex = -1
+                var maxCount = 0
+
+                for (i in counts.indices) {
+                    if (counts[i] > maxCount) {
+                        maxCount = counts[i]
+                        maxIndex = i
+                    }
+                }
+
+                if (maxIndex != -1) {
+                    // MoodStatistics와 동일한 이모지/이름
+                    val emojiList = listOf("😢", "😔", "😐", "😊", "😍")
+                    val nameList = listOf("Bad", "Sad", "Neutral", "Good", "Very Good")
+
+                    tvTopMoodName.text = nameList[maxIndex]
+                    tvTopMoodCount.text = "$maxCount times"
+                    tvTopMoodEmoji.text = emojiList[maxIndex]
+                } else {
+                    tvTopMoodName.text = "No Data"
+                    tvTopMoodCount.text = "Track your mood!"
+                    tvTopMoodEmoji.text = "🫥"
+                }
+            }
+            .addOnFailureListener {
+                tvTopMoodName.text = "Error"
+                tvTopMoodCount.text = "-"
             }
     }
 

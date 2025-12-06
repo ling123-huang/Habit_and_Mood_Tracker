@@ -253,10 +253,8 @@ class Home: AppCompatActivity() {
                     true
                 }
                 R.id.menu_profile -> {
-                    // MyActivity로 이동
                     val intent = Intent(this, MyPage::class.java)
                     startActivity(intent)
-                    overridePendingTransition(0, 0) // 애니메이션 없이 전환
                     true
                 }
                 else -> false
@@ -292,8 +290,6 @@ class Home: AppCompatActivity() {
                 "isAlarmOn" to isAlarmOn,
                 "selectedDays" to selectedDays
             )
-
-
 
             // null 이면 필드 생략, 있으면 저장
             alarmHour?.let { habitData["alarmHour"] = it }

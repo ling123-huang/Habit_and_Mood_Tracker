@@ -231,7 +231,7 @@ class HabitAdapter(private val habitList: MutableList<Habit>,private val onDelet
             // 오늘 완료: 연두색 테두리 + 글씨색
             holder.viewOuterCircle.setBackgroundResource(R.drawable.circle_outer_checked)
             holder.tvStreakDays.setTextColor(
-                holder.itemView.context.getColor(R.color.light_green)
+                holder.itemView.context.getColor(R.color.green)
             )
         } else {
             // 오늘 미완료: 회색 테두리

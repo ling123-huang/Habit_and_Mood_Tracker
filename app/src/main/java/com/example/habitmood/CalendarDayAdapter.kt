@@ -12,12 +12,16 @@ data class CalendarDay(
     val isCurrentMonth: Boolean,
     val isChecked: Boolean,
     val moodEmoji: String? = null,//mood
-    val date: String // "2025-11-04" 형식
+    val date: String, // "2025-11-04" 형식
+    val isFutureDate: Boolean = false, //미래 날짜 여부
+    val isAvailable: Boolean = true //선택 및 체크 가능 여부 (생성일 이전, 미래 날짜는 false)
 )
 
 class CalendarDayAdapter(
     private val days: List<CalendarDay>,
+    private val selectedDate: String,
     private val onDayClick: (CalendarDay) -> Unit
+
 ) : RecyclerView.Adapter<CalendarDayAdapter.DayViewHolder>() {
 
     class DayViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -39,44 +43,64 @@ class CalendarDayAdapter(
 
         if (day.isCurrentMonth) {
             holder.tvDayNumber.text = day.dayNumber.toString()
+
             if (day.moodEmoji != null) {
-                // ▶ CASE 1: 기분 통계 화면 (MoodStatistics)
-                // 1. 숫자 대신 이모티콘 출력
+                // MoodStatistics (기분 이모지 표시)
                 holder.tvDayNumber.text = day.moodEmoji
-                // 2. 글씨(이모티콘) 크기 키움
                 holder.tvDayNumber.textSize = 22f
-                // 3. 배경 동그라미는 숨김 (이모티콘만 깔끔하게 나오도록)
                 holder.viewDayBackground.visibility = View.INVISIBLE
-
-                // (선택사항) 텍스트 색상 원복
                 holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.black))
-
+                holder.itemView.setOnClickListener(null) // 이모지 날짜는 MonthlyDetail에서 클릭 불가
+                holder.itemView.isClickable = false
             } else {
-                // ▶ CASE 2: 습관 체크 화면 (MonthlyDetail) - 기존 로직 유지
-                // 1. 날짜 숫자 출력
+                // MonthlyDetail (습관 체크)
                 holder.tvDayNumber.text = day.dayNumber.toString()
-                // 2. 글씨 크기 원래대로
                 holder.tvDayNumber.textSize = 14f
-                // 3. 배경 동그라미 보이기
                 holder.viewDayBackground.visibility = View.VISIBLE
 
-                // 체크 여부에 따른 초록색/회색 처리
-                if (day.isChecked) {
-                    holder.viewDayBackground.setBackgroundResource(R.drawable.day_circle_checked)
-                    holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.black)) // 혹은 WHITE 등 디자인에 맞춰
-                } else {
+                // 미래 날짜 또는 생성일 이전 날짜 처리
+                if (!day.isAvailable) {
+                    holder.viewDayBackground.visibility = View.VISIBLE
+
+                    // 습관 생성일 이전 날짜
                     holder.viewDayBackground.setBackgroundResource(R.drawable.day_circle_default)
-                    holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.black))
+                    holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.gray))
+                    //선택 및 체크 불가
+                    holder.itemView.setOnClickListener(null)
+                    holder.itemView.isClickable = false
+
+                } else {
+                    holder.tvDayNumber.setTypeface(null, android.graphics.Typeface.BOLD)
+                    // 체크 여부에 따른 초록색/회색 처리
+                    if (day.date == selectedDate) {
+                        // 1순위: 내가 지금 '선택'한 날짜 (회색)
+                        holder.viewDayBackground.setBackgroundResource(R.drawable.day_circle_selected)
+                        holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.white)) // 회색 배경엔 흰 글씨
+                    }
+                    else if (day.isChecked) {
+                        // 2순위: 이미 '완료'한 날짜 (초록색)
+                        holder.viewDayBackground.setBackgroundResource(R.drawable.day_circle_checked)
+                        holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.white)) // 초록 배경엔 흰 글씨
+                    }
+                    else {
+                        // 3순위: 기본 (투명/테두리)
+                        holder.viewDayBackground.setBackgroundResource(R.drawable.day_circle_default)
+                        holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.black)) // 기본 배경엔 검은 글씨
+                    }
+
+                    // 클릭 활성화
+                    holder.itemView.setOnClickListener {
+                        onDayClick(day)
+                    }
                 }
-            }
-            holder.itemView.setOnClickListener {
-                onDayClick(day)
             }
 
         } else {
-            // 다른 달의 날짜는 숨김
+            // 다른 달의 날짜 및 생성일 이전 날짜는 숨김
             holder.tvDayNumber.visibility = View.INVISIBLE
             holder.viewDayBackground.visibility = View.INVISIBLE
+            holder.itemView.setOnClickListener(null)
+            holder.itemView.isClickable = false
         }
     }
 

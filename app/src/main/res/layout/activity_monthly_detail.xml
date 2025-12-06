@@ -14,7 +14,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
         tools:context=".MonthlyDetail">
 
         <!-- 상단 헤더 -->
@@ -45,70 +44,92 @@
                 android:layout_centerInParent="true"/>
         </RelativeLayout>
 
-        <!-- 월/년 표시 및 이동 버튼 -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#E0E0E0"
+            app:strokeWidth="1dp"
+            android:backgroundTint="@color/white"
             android:layout_marginBottom="16dp">
 
-            <ImageButton
-                android:id="@+id/btnPrevMonth"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/left"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Previous Month"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
 
-            <TextView
-                android:id="@+id/tvMonthYear"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="November 2025"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:gravity="center"/>
+                <!-- 월/년 표시 및 이동 버튼 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
 
-            <ImageButton
-                android:id="@+id/btnNextMonth"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/right"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Next Month"/>
-        </LinearLayout>
+                    <ImageButton
+                        android:id="@+id/btnPrevMonth"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/left"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Previous Month"/>
 
-        <include
-            android:id="@+id/includedCalendar"
-            layout="@layout/view_calendar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+                    <TextView
+                        android:id="@+id/tvMonthYear"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="November 2025"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:gravity="center"/>
 
-        <!-- 하단 완료 버튼 -->
-        <Button
-            android:id="@+id/btnComplete"
-            android:layout_width="300dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="16dp"
-            android:backgroundTint="@color/green"
-            android:stateListAnimator="@null"
-            android:text="Complete"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:cornerRadius="12dp" />
+                    <ImageButton
+                        android:id="@+id/btnNextMonth"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/right"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Next Month"/>
+                </LinearLayout>
+
+                <include
+                    android:id="@+id/includedCalendar"
+                    layout="@layout/view_calendar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <!-- 하단 완료 버튼 -->
+                <Button
+                    android:id="@+id/btnComplete"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/green"
+                    android:layout_gravity="center_horizontal"
+                    android:stateListAnimator="@null"
+                    android:text="Complete"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="12dp" />
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- 통계 카드 영역 -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             app:cardCornerRadius="16dp"
-            app:cardElevation="10dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#E0E0E0"
+            app:strokeWidth="1dp"
             android:backgroundTint="@color/white"
             app:cardBackgroundColor="#F8F9FA">
 
@@ -209,7 +230,7 @@
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 

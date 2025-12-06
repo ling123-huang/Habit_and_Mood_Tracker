@@ -24,6 +24,7 @@ import com.google.firebase.firestore.SetOptions
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 class MoodStatistics : AppCompatActivity() {
 
     private lateinit var calendarRecyclerView: RecyclerView
@@ -47,7 +48,6 @@ class MoodStatistics : AppCompatActivity() {
 
     //private val recordedDates: MutableSet<String> = mutableSetOf()
     private val recordedDates: MutableMap<String, String> = mutableMapOf()
-
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private val emojiList = listOf("😢", "😔", "😐", "😊", "😍")//추가
@@ -244,7 +244,7 @@ class MoodStatistics : AppCompatActivity() {
 
         val days = generateCalendarDays()
 
-        val adapter = CalendarDayAdapter(days) { day ->
+        val adapter = CalendarDayAdapter(days, "") { day ->
             if (day.isCurrentMonth && day.dayNumber != 0) {
                 onDayClicked(day.date)
             }

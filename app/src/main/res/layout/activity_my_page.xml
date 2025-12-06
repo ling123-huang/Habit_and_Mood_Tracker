@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -7,11 +8,35 @@
     android:layout_height="match_parent"
     android:background="@color/light_light_gray"
     tools:context=".MyPage">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/light_light_gray"
+        app:liftOnScroll="false"
+        app:elevation="0dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="My Profile"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:fontFamily="@font/comfortaa"
+            android:layout_gravity="center_horizontal"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="12dp"/>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="100dp">
+        android:paddingBottom="100dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -19,18 +44,6 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- 헤더 -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="My Profile"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:fontFamily="@font/comfortaa"
-                android:layout_marginBottom="24dp"/>
-
-            <!-- 프로필 카드 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -48,8 +61,6 @@
                     android:padding="24dp"
                     android:gravity="center">
 
-
-                    <!-- 사용자 이름 -->
                     <TextView
                         android:id="@+id/tvUserName"
                         android:layout_width="wrap_content"
@@ -60,7 +71,6 @@
                         android:textColor="@color/black"
                         android:layout_marginBottom="4dp"/>
 
-                    <!-- 이메일 -->
                     <TextView
                         android:id="@+id/tvUserEmail"
                         android:layout_width="wrap_content"
@@ -70,12 +80,11 @@
                         android:textColor="#757575"
                         android:layout_marginBottom="16dp"/>
 
-                    <!-- Member for -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:background="#F8F9FA"
+                        android:background="@color/light_light_gray"
                         android:padding="16dp"
                         android:gravity="center_vertical">
 
@@ -83,15 +92,15 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Member for"
+                            android:text="My habits "
                             android:textSize="14sp"
                             android:textColor="@color/gray"/>
 
                         <TextView
-                            android:id="@+id/tvMemberDays"
+                            android:id="@+id/tvTotalHabits"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="45 days"
+                            android:text="0"
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@color/green"/>
@@ -99,7 +108,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 이번 달 최고 습관 카드 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -119,7 +127,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="This Month's Best Habit"
+                        android:text="Best Habit"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="@color/black"
@@ -151,7 +159,7 @@
                                 android:id="@+id/tvBestHabitRate"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="95% completion"
+                                android:text="384days"
                                 android:textSize="14sp"
                                 android:textColor="@color/gray"/>
                         </LinearLayout>
@@ -164,7 +172,73 @@
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-            <!-- 설정 카드 -->
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#E0E0E0"
+                app:strokeWidth="1dp"
+                android:backgroundTint="@color/white"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mood of the Month"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:layout_marginBottom="12dp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvTopMoodName"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Happy"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/green"
+                                android:layout_marginBottom="4dp"/>
+
+                            <TextView
+                                android:id="@+id/tvTopMoodCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="12 times"
+                                android:textSize="14sp"
+                                android:textColor="@color/gray"/>
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvTopMoodEmoji"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="😊"
+                            android:textSize="40sp"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -190,7 +264,6 @@
                         android:textColor="@color/black"
                         android:layout_marginBottom="16dp"/>
 
-                    <!-- Daily Reminder -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -228,7 +301,6 @@
                             android:theme="@style/GreenSwitchTheme"/>
                     </LinearLayout>
 
-                    <!-- Change Time Button -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnChangeTime"
                         android:layout_width="match_parent"
@@ -243,7 +315,6 @@
                         android:layout_marginBottom="16dp"
                         style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
-                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
@@ -253,7 +324,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Logout Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
@@ -269,7 +339,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- 하단 네비게이션 바 -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
