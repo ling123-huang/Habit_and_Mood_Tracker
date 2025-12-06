@@ -110,17 +110,50 @@ class Home: AppCompatActivity() {
         habitAdapter = HabitAdapter(habitList) { position ->
             val habit = habitList.getOrNull(position) ?: return@HabitAdapter
             val user = auth.currentUser ?: return@HabitAdapter
-            db.collection("users")
+
+            val habitRef = db.collection("users")
                 .document(user.uid)
                 .collection("habits")
-                .document(habit.id)
-                .delete()
-                .addOnSuccessListener {
-                    habitList.removeAt(position)
-                    habitAdapter.notifyItemRemoved(position)
-                    updateTotalCount()
+                .document(habit.id)1
+
+            habitRef.collection("checkins")
+                .get()
+                .addOnSuccessListener { checkinsSnapshot ->
+                    val batch = db.batch()
+                    for (doc in checkinsSnapshot.documents) {
+                        batch.delete(doc.reference)
+                    }
+                    batch.delete(habitRef)
+
+                    batch.commit()
+                        .addOnSuccessListener {
+                            habitList.removeAt(position)
+                            habitAdapter.notifyItemRemoved(position)
+                            updateTotalCount()
+
+                            Toast.makeText(
+                                this,
+                                "Habit and all check-ins deleted",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(
+                                this,
+                                "Failed to delete habit: ${e.localizedMessage}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(
+                        this,
+                        "Failed to load check-ins: ${e.localizedMessage}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
         }
+
         habitRecyclerView.layoutManager = LinearLayoutManager(this)
         habitRecyclerView.adapter = habitAdapter
 
