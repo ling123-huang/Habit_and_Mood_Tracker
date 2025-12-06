@@ -156,7 +156,6 @@ class MoodStatistics : AppCompatActivity() {
                         recordedDates[dateStr] = emojiList[moodVal - 1]
                     }
                 }
-                    //recordedDates.add(dateStr)
 
                 updateCalendar(snapshot.documents)
                 updateMoodOverview(snapshot)

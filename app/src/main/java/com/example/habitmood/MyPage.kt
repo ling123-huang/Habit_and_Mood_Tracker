@@ -31,7 +31,7 @@ class MyPage : AppCompatActivity() {
     private lateinit var tvBestHabitName: TextView
     private lateinit var tvBestHabitRate: TextView
 
-    // Mood of the Month 관련 (새로 추가됨)
+    // Mood of the Month 관련
     private lateinit var tvTopMoodName: TextView
     private lateinit var tvTopMoodCount: TextView
     private lateinit var tvTopMoodEmoji: TextView
@@ -372,7 +372,7 @@ class MyPage : AppCompatActivity() {
 
                 if (maxIndex != -1) {
                     // MoodStatistics와 동일한 이모지/이름
-                    val emojiList = listOf("😢", "😔", "😐", "😊", "😍")
+                    val emojiList = listOf("\uD83D\uDE2D", "😔", "😐", "😊", "😍")
                     val nameList = listOf("Bad", "Sad", "Neutral", "Good", "Very Good")
 
                     tvTopMoodName.text = nameList[maxIndex]

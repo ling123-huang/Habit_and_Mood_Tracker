@@ -227,8 +227,6 @@ class Home: AppCompatActivity() {
                 etMoodNote.clearFocus()
                 layoutMoodNote.visibility = View.GONE
                 btnSaveMood.visibility = View.GONE
-
-                //btnReset.visibility = View.VISIBLE
             }
     }
 
@@ -307,7 +305,6 @@ class Home: AppCompatActivity() {
     private fun updateTotalCount() {
         tvTotalCount.text = "Total: ${habitList.size}"
     }
-    // Home.kt의 loadHabitsFromFirestore() 함수만 교체하세요
 
     private fun loadHabitsFromFirestore() {
         val user = auth.currentUser ?: return
