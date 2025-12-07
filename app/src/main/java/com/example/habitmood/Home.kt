@@ -114,7 +114,7 @@ class Home: AppCompatActivity() {
             val habitRef = db.collection("users")
                 .document(user.uid)
                 .collection("habits")
-                .document(habit.id)1
+                .document(habit.id)
 
             habitRef.collection("checkins")
                 .get()
