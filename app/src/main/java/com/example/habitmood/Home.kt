@@ -114,7 +114,7 @@ class Home: AppCompatActivity() {
             val habitRef = db.collection("users")
                 .document(user.uid)
                 .collection("habits")
-                .document(habit.id)1
+                .document(habit.id)
 
             habitRef.collection("checkins")
                 .get()
@@ -336,7 +336,8 @@ class Home: AppCompatActivity() {
         }
     }
     private fun updateTotalCount() {
-        tvTotalCount.text = "Total: ${habitList.size}"
+        val realCount = habitList.count { it.id != "DIVIDER" }
+        tvTotalCount.text = "Total: $realCount"
     }
 
     private fun loadHabitsFromFirestore() {
