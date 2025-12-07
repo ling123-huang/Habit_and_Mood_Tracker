@@ -412,7 +412,7 @@
 
             <!-- 달력 형식 기분 기록 -->
             <com.google.android.material.card.MaterialCardView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp"
