@@ -8,6 +8,8 @@
 
         <item name="colorSecondary">@color/green</item>
         <item name="colorOnSecondary">@color/white</item>
+
+        <item name="android:windowDisablePreview">true</item>
     </style>
 
     <style name="Theme.HabitMood" parent="Base.Theme.HabitMood" />

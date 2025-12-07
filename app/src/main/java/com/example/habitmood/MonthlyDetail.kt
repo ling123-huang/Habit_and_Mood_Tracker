@@ -26,6 +26,7 @@ class MonthlyDetail : AppCompatActivity() {
     private lateinit var btnBack: ImageButton
     private lateinit var tvHabitTitle: TextView
     private lateinit var btnComplete: Button
+    private lateinit var circularProgress: CircularProgressView
 
     private val calendar = Calendar.getInstance()
     private val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.ENGLISH)
@@ -81,6 +82,7 @@ class MonthlyDetail : AppCompatActivity() {
         btnBack = findViewById(R.id.btnBack)
         tvHabitTitle = findViewById(R.id.tvHabitTitle)
         btnComplete = findViewById(R.id.btnComplete)
+        circularProgress = findViewById(R.id.circularProgress)
     }
 
     private fun setupListeners() {
@@ -246,6 +248,7 @@ class MonthlyDetail : AppCompatActivity() {
         } else {
             0
         }
+        circularProgress.setProgress(percentage, animate = true)
 
         tvMonthPercentage.text = "$percentage%"
         tvMonthCount.text = "${monthCheckCount}days"

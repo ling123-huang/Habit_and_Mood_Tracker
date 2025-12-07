@@ -139,32 +139,46 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <!-- 월 달성률 (큰 표시) -->
-                <LinearLayout
+                <!-- 원형 차트 영역 -->
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="10dp"
-                    android:layout_marginBottom="5dp">
+                    android:layout_marginBottom="20dp"
+                    android:padding="10dp">
 
-                    <TextView
+                    <!-- 원형 프로그레스 뷰 -->
+                    <com.example.habitmood.CircularProgressView
+                        android:id="@+id/circularProgress"
+                        android:layout_width="180dp"
+                        android:layout_height="180dp"
+                        android:layout_centerInParent="true"/>
+
+                    <!-- 중앙 텍스트 -->
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Achievement Rate"
-                        android:textSize="14sp"
-                        android:textColor="#6C757D"
-                        android:layout_marginBottom="8dp"/>
+                        android:layout_centerInParent="true"
+                        android:orientation="vertical"
+                        android:gravity="center">
 
-                    <TextView
-                        android:id="@+id/tvMonthPercentage"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="85%"
-                        android:textSize="48sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/green"/>
-                </LinearLayout>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Achievement"
+                            android:textSize="12sp"
+                            android:textColor="#6C757D"
+                            android:layout_marginBottom="4dp"/>
+
+                        <TextView
+                            android:id="@+id/tvMonthPercentage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="85%"
+                            android:textSize="40sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/green"/>
+                    </LinearLayout>
+                </RelativeLayout>
 
                 <!-- 하단 통계 2열 -->
                 <LinearLayout
