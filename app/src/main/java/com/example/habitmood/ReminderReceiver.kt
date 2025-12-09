@@ -40,7 +40,9 @@ class ReminderReceiver : BroadcastReceiver() {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra("HABIT_ID", habitId)
             putExtra("HABIT_NAME", habitName)
-       }
+            putExtra("HABIT_CREATED_DATE", intent.getStringExtra("HABIT_CREATED_DATE"))
+
+        }
 
         val contentPendingIntent = PendingIntent.getActivity(
             context,

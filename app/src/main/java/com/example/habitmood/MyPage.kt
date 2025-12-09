@@ -262,7 +262,9 @@ class MyPage : AppCompatActivity() {
     private fun loadBestHabit() {
         val user = auth.currentUser ?: return
         val calendar = Calendar.getInstance()
-        val currentMonth = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(calendar.time)
+        val currentYear = calendar.get(Calendar.YEAR)
+        val currentMonth = calendar.get(Calendar.MONTH)     // 0 = Jan
+        val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
         db.collection("users")
             .document(user.uid)
@@ -287,6 +289,42 @@ class MyPage : AppCompatActivity() {
                     val habitName = habitDoc.getString("name") ?: continue
                     val habitId = habitDoc.id
 
+                    // ① 读取创建时间 createdAt
+                    val createdTs = habitDoc.getTimestamp("createdAt")
+                    val createdCal = createdTs?.let {
+                        Calendar.getInstance().apply {
+                            time = it.toDate()
+                            set(Calendar.HOUR_OF_DAY, 0)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }
+                    }
+
+                    // ② 计算这个习惯在“当前月份”的有效天数 targetDays
+                    var targetDays = daysInMonth
+
+                    if (createdCal != null) {
+                        val createdYear = createdCal.get(Calendar.YEAR)
+                        val createdMonth = createdCal.get(Calendar.MONTH)
+                        val createdDay = createdCal.get(Calendar.DAY_OF_MONTH)
+
+                        targetDays = when {
+                            // 当前月份在创建月份之前 → 还没开始，分母 0
+                            currentYear < createdYear ||
+                                    (currentYear == createdYear && currentMonth < createdMonth) -> 0
+
+                            // 当前月份 = 创建月份 → 分母 = 从创建日到月底
+                            currentYear == createdYear && currentMonth == createdMonth ->
+                                daysInMonth - (createdDay - 1)
+
+                            // 当前月份在创建月份之后 → 用整个月天数
+                            else -> daysInMonth
+                        }
+                    }
+
+                    val targetDaysFinal = targetDays  // 闭包里用的 final 变量
+
                     db.collection("users")
                         .document(user.uid)
                         .collection("habits")
@@ -294,13 +332,25 @@ class MyPage : AppCompatActivity() {
                         .collection("checkins")
                         .get()
                         .addOnSuccessListener { checkinsSnapshot ->
+                            // ③ 只统计本月的打卡次数
+                            val currentMonthPrefix = String.format(
+                                Locale.getDefault(),
+                                "%04d-%02d",
+                                currentYear,
+                                currentMonth + 1 // Calendar.MONTH 是 0~11
+                            )
+
                             val thisMonthCheckins = checkinsSnapshot.documents.count {
-                                it.getString("date")?.startsWith(currentMonth) == true ||
-                                        it.id.startsWith(currentMonth)
+                                val d = it.getString("date") ?: it.id
+                                d.startsWith(currentMonthPrefix)
                             }
 
-                            val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-                            val rate = (thisMonthCheckins * 100) / daysInMonth
+                            // ④ 计算百分比：本月完成天数 / targetDays
+                            val rate = if (targetDaysFinal > 0) {
+                                (thisMonthCheckins * 100) / targetDaysFinal
+                            } else {
+                                0
+                            }
 
                             if (rate >= bestRate) {
                                 bestRate = rate
@@ -321,6 +371,7 @@ class MyPage : AppCompatActivity() {
                 }
             }
     }
+
     private fun loadMoodOfTheMonth() {
         val user = auth.currentUser ?: return
 

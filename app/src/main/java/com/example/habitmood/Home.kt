@@ -385,7 +385,8 @@ class Home: AppCompatActivity() {
                             habit.name,
                             alarmHour,
                             alarmMinute,
-                            selectedDays
+                            selectedDays,
+                            habit.createdDate
                         )
                     }
 
@@ -444,7 +445,8 @@ class Home: AppCompatActivity() {
         habitName: String,
         hour: Int,
         minute: Int,
-        selectedDays: List<String>
+        selectedDays: List<String>,
+        habitCreatedDate: String
     ) {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -452,8 +454,8 @@ class Home: AppCompatActivity() {
             putExtra("HABIT_ID", habitId)
             putExtra("HABIT_NAME", habitName)
             putStringArrayListExtra("SELECTED_DAYS", ArrayList(selectedDays))
-
             putExtra("HABIT_MESSAGE", "Time for \"$habitName\" 🙌")
+            putExtra("HABIT_CREATED_DATE", habitCreatedDate)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
@@ -544,4 +546,3 @@ class Home: AppCompatActivity() {
             }
     }
 }
-

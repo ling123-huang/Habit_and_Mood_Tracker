@@ -10,6 +10,9 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Calendar
+import java.text.SimpleDateFormat
+import java.util.Locale
+
 
 class BootReceiver : BroadcastReceiver() {
 
@@ -46,20 +49,25 @@ class BootReceiver : BroadcastReceiver() {
                     val alarmHour = doc.getLong("alarmHour")?.toInt()
                     val alarmMinute = doc.getLong("alarmMinute")?.toInt()
 
+                    // ★ 读出 createdAt → 转成 "yyyy.MM.dd"，和 Home / MonthlyDetail 用的一样
+                    val createdAtTs = doc.getTimestamp("createdAt")
+                    val createdDate = createdAtTs?.let {
+                        val df = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
+                        df.format(it.toDate())
+                    } ?: ""
+
                     if (alarmHour != null && alarmMinute != null) {
-                        Log.d(
-                            "BootReceiver",
-                            "Reschedule: $habitName at $alarmHour:$alarmMinute"
-                        )
                         scheduleHabitReminder(
                             context,
                             habitId,
                             habitName,
                             alarmHour,
-                            alarmMinute
+                            alarmMinute,
+                            createdDate                 // ★ 传给 scheduleHabitReminder
                         )
                     }
                 }
+
             }
             .addOnFailureListener { e ->
                 Log.e("BootReceiver", "Failed to reload habits after boot", e)
@@ -71,7 +79,8 @@ class BootReceiver : BroadcastReceiver() {
         habitId: String,
         habitName: String,
         hour: Int,
-        minute: Int
+        minute: Int,
+        habitCreatedDate: String
     ) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -79,6 +88,7 @@ class BootReceiver : BroadcastReceiver() {
             putExtra("HABIT_ID", habitId)
             putExtra("HABIT_NAME", habitName)
             putExtra("HABIT_MESSAGE", "Time for \"$habitName\" 🙌")
+            putExtra("HABIT_CREATED_DATE", habitCreatedDate)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(

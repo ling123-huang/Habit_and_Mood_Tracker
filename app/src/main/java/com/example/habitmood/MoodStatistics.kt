@@ -340,7 +340,6 @@ class MoodStatistics : AppCompatActivity() {
     }
     override fun onResume() {
         super.onResume()
-        // 其他页面返回时，保持 Stats tab 选中
         bottomNavigationView.selectedItemId = R.id.menu_stats
     }
 }
