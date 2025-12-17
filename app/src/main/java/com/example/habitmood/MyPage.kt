@@ -7,7 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.view.View
+import android.os.Build
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -185,10 +185,15 @@ class MyPage : AppCompatActivity() {
     private fun scheduleDailyReminder() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        val intent = Intent(this, ReminderReceiver::class.java)
+        val intent = Intent(this, ReminderReceiver::class.java).apply {
+            putExtra("HABIT_ID", "MY_PAGE_DAILY")
+            putExtra("HABIT_NAME", "Daily Reminder")
+            putExtra("HABIT_MESSAGE", "Time to check your habits today ✅")
+        }
+
         val pendingIntent = PendingIntent.getBroadcast(
             this,
-            9999,
+            "MY_PAGE_DAILY".hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -204,25 +209,28 @@ class MyPage : AppCompatActivity() {
             }
         }
 
-        alarmManager.setRepeating(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
-            pendingIntent
-        )
+        alarmManager.cancel(pendingIntent)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+        } else {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+        }
     }
+
 
     private fun cancelDailyReminder() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, ReminderReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
             this,
-            9999,
+            "MY_PAGE_DAILY".hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         alarmManager.cancel(pendingIntent)
     }
+
 
     private fun setupBottomNavigation() {
         bottomNavigationView.selectedItemId = R.id.menu_profile
