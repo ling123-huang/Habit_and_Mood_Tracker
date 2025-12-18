@@ -21,7 +21,7 @@
         app:elevation="2dp">
     </com.google.android.material.button.MaterialButton>
 
-    <!-- 버튼 위에 커스텀 레이아웃 -->
+    <!-- custom layout -->
     <LinearLayout
         android:id="@+id/habitContentLayout"
         android:layout_width="match_parent"
@@ -31,7 +31,7 @@
         android:layout_gravity="center_vertical"
         android:clickable="false">
 
-        <!-- 체크 아이콘 영역 -->
+        <!-- check icon area -->
         <FrameLayout
             android:id="@+id/checkCircleFrame"
             android:layout_width="60dp"
@@ -40,7 +40,6 @@
             android:clickable="true"
             android:focusable="true">
 
-            <!-- 바깥 원 (큰 원) -->
             <View
                 android:id="@+id/viewOuterCircle"
                 android:layout_width="60dp"
@@ -48,7 +47,6 @@
                 android:layout_gravity="center"
                 android:background="@drawable/circle_outer_unchecked"/>
 
-            <!-- 안쪽 원 (작은 원) -->
             <View
                 android:id="@+id/viewInnerCircle"
                 android:layout_width="45dp"
@@ -56,7 +54,7 @@
                 android:layout_gravity="center"
                 android:background="@drawable/circle_inner"/>
 
-            <!-- 월 달성율-->
+            <!-- Monthly Achievement Rate -->
             <TextView
                 android:id="@+id/tvStreakDays"
                 android:layout_width="wrap_content"
@@ -69,7 +67,7 @@
 
         </FrameLayout>
 
-        <!-- 습관 이름과 날짜 정보 -->
+        <!-- habit information -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"

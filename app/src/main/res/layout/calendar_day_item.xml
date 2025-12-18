@@ -5,7 +5,6 @@
     android:layout_margin="2dp"
     android:padding="4dp">
 
-    <!-- 배경 원 -->
     <View
         android:id="@+id/viewDayBackground"
         android:layout_width="40dp"
@@ -13,7 +12,6 @@
         android:layout_gravity="center"
         android:background="@drawable/day_circle_default"/>
 
-    <!-- 날짜 텍스트 -->
     <TextView
         android:id="@+id/tvDayNumber"
         android:layout_width="wrap_content"

@@ -19,7 +19,7 @@
             android:orientation="vertical"
             android:padding="32dp">
 
-            <!--헤더: 날짜 및 인사말 -->
+            <!--header -->
             <TextView
                 android:id="@+id/tvDate"
                 android:layout_width="wrap_content"
@@ -41,7 +41,7 @@
                 android:textColor="@color/black"
                 android:layout_marginBottom="24dp"/>
 
-            <!-- 기분 트래커 카드 -->
+            <!-- Mood Tracker Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -73,7 +73,6 @@
                         android:orientation="horizontal"
                         android:gravity="center">
 
-                        <!-- 기분 버튼 -->
                         <TextView
                             android:id="@+id/btnMoodBad"
                             android:layout_width="0dp"
@@ -164,7 +163,6 @@
                             android:inputType="textMultiLine"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- 저장 버튼 -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSaveMood"
                         android:layout_width="200dp"
@@ -189,7 +187,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 습관 리스트 섹션 -->
+            <!-- Habit List Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -216,7 +214,7 @@
                     android:textStyle="bold"/>
             </LinearLayout>
 
-            <!-- 리사이클러뷰 (스크롤 문제 방지를 위해 nestedScrollingEnabled=false 설정) -->
+            <!-- RecyclerView (set nestedScrollingEnabled=false to prevent scroll issues) -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/habit_RecyclerView"
                 android:layout_width="match_parent"
@@ -242,8 +240,6 @@
         app:srcCompat="@drawable/plus"
         app:maxImageSize="@android:dimen/app_icon_size"/>
 
-
-    <!-- 하단 바-->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"

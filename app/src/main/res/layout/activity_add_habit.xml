@@ -41,8 +41,6 @@
                 android:textStyle="bold"
                 android:textColor="@color/black"/>
 
-
-            <!-- 습관 이름 입력 -->
             <EditText
                 android:id="@+id/etHabitName"
                 android:layout_width="match_parent"
@@ -52,7 +50,7 @@
                 android:padding="10dp"
                 android:layout_marginBottom="16dp"/>
 
-            <!-- 알림 설정 토글 -->
+            <!--  Notification Settings Toggle  -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -76,7 +74,7 @@
                     android:theme="@style/GreenSwitchTheme"/>
             </LinearLayout>
 
-            <!-- 알림 세부 설정 (숨겨져 있다가 켜지면 보임) -->
+            <!--Notification detailed settings (hidden, visible when turned on)-->
             <LinearLayout
                 android:id="@+id/layoutAlarmDetails"
                 android:layout_width="match_parent"
@@ -85,7 +83,7 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <!-- 시간 선택 -->
+                <!-- Select Time -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

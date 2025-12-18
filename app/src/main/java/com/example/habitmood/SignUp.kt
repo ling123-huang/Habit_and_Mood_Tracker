@@ -30,7 +30,7 @@ class SignUp : AppCompatActivity() {
 
 
         btnBack.setOnClickListener {
-            finish() // 현재 화면 종료 -> 로그인 화면으로 복귀
+            finish() // Exit current screen -> Return to login screen
         }
 
         btnRegister.setOnClickListener {

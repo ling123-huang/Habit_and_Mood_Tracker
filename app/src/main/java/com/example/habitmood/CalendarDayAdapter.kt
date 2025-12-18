@@ -12,9 +12,9 @@ data class CalendarDay(
     val isCurrentMonth: Boolean,
     val isChecked: Boolean,
     val moodEmoji: String? = null,//mood
-    val date: String, // "2025-11-04" 형식
-    val isFutureDate: Boolean = false, //미래 날짜 여부
-    val isAvailable: Boolean = true //선택 및 체크 가능 여부 (생성일 이전, 미래 날짜는 false)
+    val date: String, // "2025-11-04" format
+    val isFutureDate: Boolean = false, //future date
+    val isAvailable: Boolean = true //Selectable and checkable (false for dates before creation or future dates)
 )
 
 class CalendarDayAdapter(
@@ -45,52 +45,52 @@ class CalendarDayAdapter(
             holder.tvDayNumber.text = day.dayNumber.toString()
 
             if (day.moodEmoji != null) {
-                // MoodStatistics (기분 이모지 표시)
+                // MoodStatistics (Mood emoji display)
                 holder.tvDayNumber.text = day.moodEmoji
                 holder.tvDayNumber.textSize = 22f
                 holder.viewDayBackground.visibility = View.INVISIBLE
                 holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.black))
-                holder.itemView.setOnClickListener(null) // 이모지 날짜는 MonthlyDetail에서 클릭 불가
+                holder.itemView.setOnClickListener(null) // Emoji dates cannot be clicked in MonthlyDetail
                 holder.itemView.setOnClickListener {
                     onDayClick(day)
                 }
             } else {
-                // MonthlyDetail (습관 체크)
+                // MonthlyDetail (Habit Check)
                 holder.tvDayNumber.text = day.dayNumber.toString()
                 holder.tvDayNumber.textSize = 14f
                 holder.viewDayBackground.visibility = View.VISIBLE
 
-                // 미래 날짜 또는 생성일 이전 날짜 처리
+                // Handling future dates or dates before the creation date
                 if (!day.isAvailable) {
                     holder.viewDayBackground.visibility = View.VISIBLE
 
-                    // 습관 생성일 이전 날짜
+                    //Date before habit creation
                     holder.viewDayBackground.setBackgroundResource(R.drawable.day_circle_default)
                     holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.gray))
-                    //선택 및 체크 불가
+                    //Cannot select or check
                     holder.itemView.setOnClickListener(null)
                     holder.itemView.isClickable = false
 
                 } else {
                     holder.tvDayNumber.setTypeface(null, android.graphics.Typeface.BOLD)
-                    // 체크 여부에 따른 초록색/회색 처리
+                    // Green/gray display depending on whether it is checked
                     if (day.date == selectedDate) {
-                        // 1순위: 내가 지금 '선택'한 날짜 (회색)
+                        //Priority 1: The date I have 'selected' now (gray)
                         holder.viewDayBackground.setBackgroundResource(R.drawable.day_circle_selected)
-                        holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.white)) // 회색 배경엔 흰 글씨
+                        holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.white))
                     }
                     else if (day.isChecked) {
-                        // 2순위: 이미 '완료'한 날짜 (초록색)
+                        // Second priority: Dates already 'completed' (green)
                         holder.viewDayBackground.setBackgroundResource(R.drawable.day_circle_checked)
-                        holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.white)) // 초록 배경엔 흰 글씨
+                        holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.white))
                     }
                     else {
-                        // 3순위: 기본 (투명/테두리)
+                        // 3rd Priority: Basic (Transparent/Border)
                         holder.viewDayBackground.setBackgroundResource(R.drawable.day_circle_default)
-                        holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.black)) // 기본 배경엔 검은 글씨
+                        holder.tvDayNumber.setTextColor(holder.itemView.context.getColor(R.color.black))
                     }
 
-                    // 클릭 활성화
+                    // Click to activate
                     holder.itemView.setOnClickListener {
                         onDayClick(day)
                     }
@@ -98,7 +98,7 @@ class CalendarDayAdapter(
             }
 
         } else {
-            // 다른 달의 날짜 및 생성일 이전 날짜는 숨김
+            // Hide dates from other months and dates before the creation date
             holder.tvDayNumber.visibility = View.INVISIBLE
             holder.viewDayBackground.visibility = View.INVISIBLE
             holder.itemView.setOnClickListener(null)

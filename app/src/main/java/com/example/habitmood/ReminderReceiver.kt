@@ -37,7 +37,7 @@ class ReminderReceiver : BroadcastReceiver() {
             manager.createNotificationChannel(channel)
         }
 
-        //알림 클릭 시 Home 화면으로 이동
+        //Go to Home screen when notification is clicked
         val openIntent = if (habitId == "MY_PAGE_DAILY") {
             Intent(context, Home::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

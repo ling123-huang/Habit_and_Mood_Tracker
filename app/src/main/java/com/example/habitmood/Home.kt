@@ -158,7 +158,6 @@ class Home: AppCompatActivity() {
         habitRecyclerView.adapter = habitAdapter
 
         fabAddHabit.setOnClickListener {
-            // AddHabitActivity로 이동
             val intent = Intent(this, AddHabitActivity::class.java)
             startActivityForResult(intent, REQUEST_ADD_HABIT)
         }
@@ -270,7 +269,7 @@ class Home: AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        // 현재 페이지를 Home으로 설정
+        // Set the current page as Home
         bottomNavigationView.selectedItemId = R.id.home_page
 
         bottomNavigationView.setOnItemSelectedListener { item ->
@@ -307,14 +306,14 @@ class Home: AppCompatActivity() {
             val newHabitName = data?.getStringExtra("NEW_HABIT_NAME") ?: return
             val user = auth.currentUser ?: return
 
-            // 알람 관련 정보도 함께 가져오기
+            // Also get alarm-related information
             val isAlarmOn = data.getBooleanExtra("IS_ALARM_ON", false)
             val alarmHour = if (isAlarmOn) data.getIntExtra("ALARM_HOUR", 9) else null
             val alarmMinute = if (isAlarmOn) data.getIntExtra("ALARM_MINUTE", 0) else null
             val selectedDays =
                 data.getStringArrayListExtra("SELECTED_DAYS") ?: arrayListOf<String>()
 
-            // Firestore에 저장할 데이터 맵
+            // Data map to store in Firestore
             val habitData = hashMapOf(
                 "name" to newHabitName,
                 "createdAt" to FieldValue.serverTimestamp(),
@@ -322,7 +321,7 @@ class Home: AppCompatActivity() {
                 "selectedDays" to selectedDays
             )
 
-            // null 이면 필드 생략, 있으면 저장
+            // If null, omit the field; if present, save it.
             alarmHour?.let { habitData["alarmHour"] = it }
             alarmMinute?.let { habitData["alarmMinute"] = it }
 
@@ -353,7 +352,7 @@ class Home: AppCompatActivity() {
                 val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
                 val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
-                // 임시 리스트: 체크 상태를 포함한 습관 데이터
+                // Temporary list: Habit data including check status
                 val tempHabits = mutableListOf<Pair<Habit, Boolean>>()
 
                 for (doc in snapshot) {
@@ -390,11 +389,11 @@ class Home: AppCompatActivity() {
                         )
                     }
 
-                    // 오늘 체크 여부 확인을 위한 임시 저장
+                    // Temporary save for checking today
                     tempHabits.add(Pair(habit, false))
                 }
 
-                // 각 습관의 오늘 체크 상태 확인
+                //Check today's status for each habit
                 var completedCount = 0
                 tempHabits.forEachIndexed { index, (habit, _) ->
                     db.collection("users")
@@ -410,18 +409,17 @@ class Home: AppCompatActivity() {
 
                             completedCount++
 
-                            // 모든 습관의 체크 상태를 확인했으면 정렬
+                            // Once you have checked the status of all habits, sort them.
                             if (completedCount == tempHabits.size) {
-                                // 체크 안된 습관 먼저, 체크된 습관 나중에
+                                // Uncheck habits first, check habits later
                                 val unchecked = tempHabits.filter { !it.second }.map { it.first }
                                 val checked = tempHabits.filter { it.second }.map { it.first }
 
                                 habitList.clear()
                                 habitList.addAll(unchecked)
 
-                                // 구분선 추가 (체크된 습관이 있을 때만)
+                                //Add a divider (only when there are checked habits)
                                 if (checked.isNotEmpty()) {
-                                    // 구분선용 더미 습관 추가
                                     habitList.add(Habit(id = "DIVIDER", name = "TODAY COMPLETE"))
                                     habitList.addAll(checked)
                                 }
@@ -432,7 +430,7 @@ class Home: AppCompatActivity() {
                         }
                 }
 
-                // 습관이 없는 경우 즉시 업데이트
+                // Update immediately if there are no habits
                 if (tempHabits.isEmpty()) {
                     habitAdapter.notifyDataSetChanged()
                     updateTotalCount()
@@ -508,7 +506,7 @@ class Home: AppCompatActivity() {
 
                     if (savedMood != null && savedMood in 1..5) {
                         selectedMood = savedMood
-                        updateMoodUI() // 아이콘 크기 키우고 투명도 조절하는 함수 호출
+                        updateMoodUI()
                     }
                     layoutMoodNote.visibility = View.GONE
                     btnSaveMood.visibility = View.GONE
@@ -516,12 +514,12 @@ class Home: AppCompatActivity() {
             }
     }
 
-    // 선택 및 입력 내용 초기화 함수
+    // Function to Reset Selection and Input
     private fun resetMoodSelection() {
         val user = auth.currentUser ?: return
         val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
-        // Firestore에서 오늘 날짜의 기록 삭제 요청
+        // Request to delete today's records in Firestore
         db.collection("users")
             .document(user.uid)
             .collection("moods")
@@ -534,14 +532,14 @@ class Home: AppCompatActivity() {
                 etMoodNote.clearFocus()
 
                 updateMoodUI()
-                // 다시 입력할 수 있도록 입력창과 저장 버튼을 보여줌
+                //Shows the input field and save button so that you can enter again
                 layoutMoodNote.visibility = View.VISIBLE
                 btnSaveMood.visibility = View.VISIBLE
 
                 Toast.makeText(this, "Mood deleted and reset", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
-                // 삭제 실패 시 에러 메시지
+                // Error message when deletion fails
                 Toast.makeText(this, "Failed to delete mood", Toast.LENGTH_SHORT).show()
             }
     }

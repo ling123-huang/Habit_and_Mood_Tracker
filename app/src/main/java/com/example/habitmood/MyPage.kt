@@ -23,41 +23,35 @@ import java.util.concurrent.TimeUnit
 
 class MyPage : AppCompatActivity() {
 
-    // UI 변수
     private lateinit var tvUserName: TextView
     private lateinit var tvUserEmail: TextView
 
-    // Best Habit 관련
     private lateinit var tvBestHabitName: TextView
     private lateinit var tvBestHabitRate: TextView
 
-    // Mood of the Month 관련
     private lateinit var tvTopMoodName: TextView
     private lateinit var tvTopMoodCount: TextView
     private lateinit var tvTopMoodEmoji: TextView
 
-    // 설정 관련
     private lateinit var tvReminderTime: TextView
     private lateinit var switchDailyReminder: SwitchMaterial
     private lateinit var btnChangeTime: MaterialButton
     private lateinit var btnLogout: MaterialButton
     private lateinit var tvTotalHabits: TextView
-    // 하단 네비게이션
     private lateinit var bottomNavigationView: BottomNavigationView
 
-    // Firebase 및 저장소
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var prefs: SharedPreferences
 
-    private var reminderHour = 21 // 기본 9:00 PM
+    private var reminderHour = 21
     private var reminderMinute = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_my_page)
 
-        // Firebase 초기화
+        // Firebase initialization
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
         prefs = getSharedPreferences("MyPagePrefs", Context.MODE_PRIVATE)
@@ -73,31 +67,22 @@ class MyPage : AppCompatActivity() {
 
     private fun initViews() {
         tvTotalHabits = findViewById(R.id.tvTotalHabits)
-        // 프로필
         tvUserName = findViewById(R.id.tvUserName)
         tvUserEmail = findViewById(R.id.tvUserEmail)
-
-        // Best Habit (XML ID와 일치시킴)
         tvBestHabitName = findViewById(R.id.tvBestHabitName)
         tvBestHabitRate = findViewById(R.id.tvBestHabitRate)
-
-        // Mood of the Month
         tvTopMoodName = findViewById(R.id.tvTopMoodName)
         tvTopMoodCount = findViewById(R.id.tvTopMoodCount)
         tvTopMoodEmoji = findViewById(R.id.tvTopMoodEmoji)
-
-        // 설정
         tvReminderTime = findViewById(R.id.tvReminderTime)
         switchDailyReminder = findViewById(R.id.switchDailyReminder)
         btnChangeTime = findViewById(R.id.btnChangeTime)
         btnLogout = findViewById(R.id.btnLogout)
-
-        // 네비게이션
         bottomNavigationView = findViewById(R.id.bottomAppBar)
     }
 
     private fun setupListeners() {
-        // 알림 스위치
+        // Notification switch
         switchDailyReminder.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("reminder_enabled", isChecked).apply()
             if (isChecked) {
@@ -109,12 +94,10 @@ class MyPage : AppCompatActivity() {
             }
         }
 
-        // 시간 변경 버튼
         btnChangeTime.setOnClickListener {
             showTimePickerDialog()
         }
 
-        // 로그아웃 버튼
         btnLogout.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Logout")
@@ -133,13 +116,11 @@ class MyPage : AppCompatActivity() {
     }
 
     private fun loadSettings() {
-        // 저장된 알림 시간 불러오기
         reminderHour = prefs.getInt("reminder_hour", 21)
         reminderMinute = prefs.getInt("reminder_minute", 0)
 
         updateTimeUI(reminderHour, reminderMinute)
 
-        // 알림 활성화 상태
         val isReminderEnabled = prefs.getBoolean("reminder_enabled", false)
         switchDailyReminder.isChecked = isReminderEnabled
     }
@@ -159,16 +140,14 @@ class MyPage : AppCompatActivity() {
                 reminderHour = hourOfDay
                 reminderMinute = minute
 
-                // 저장
                 prefs.edit()
                     .putInt("reminder_hour", reminderHour)
                     .putInt("reminder_minute", reminderMinute)
                     .apply()
 
-                // UI 업데이트
                 updateTimeUI(hourOfDay, minute)
 
-                // 알림 재설정
+                //Reset Notification
                 if (switchDailyReminder.isChecked) {
                     scheduleDailyReminder()
                     Toast.makeText(this, "Reminder time updated", Toast.LENGTH_SHORT).show()
@@ -297,7 +276,7 @@ class MyPage : AppCompatActivity() {
                     val habitName = habitDoc.getString("name") ?: continue
                     val habitId = habitDoc.id
 
-                    // ① 读取创建时间 createdAt
+                    //Read creation time createdAt
                     val createdTs = habitDoc.getTimestamp("createdAt")
                     val createdCal = createdTs?.let {
                         Calendar.getInstance().apply {
@@ -309,7 +288,6 @@ class MyPage : AppCompatActivity() {
                         }
                     }
 
-                    // ② 计算这个习惯在“当前月份”的有效天数 targetDays
                     var targetDays = daysInMonth
 
                     if (createdCal != null) {
@@ -318,20 +296,20 @@ class MyPage : AppCompatActivity() {
                         val createdDay = createdCal.get(Calendar.DAY_OF_MONTH)
 
                         targetDays = when {
-                            // 当前月份在创建月份之前 → 还没开始，分母 0
+                            // The current month is before the creation month → Not started yet, denominator 0
                             currentYear < createdYear ||
                                     (currentYear == createdYear && currentMonth < createdMonth) -> 0
 
-                            // 当前月份 = 创建月份 → 分母 = 从创建日到月底
+                            // Current month = Creation month → Denominator = From creation date to the end of the month
                             currentYear == createdYear && currentMonth == createdMonth ->
                                 daysInMonth - (createdDay - 1)
 
-                            // 当前月份在创建月份之后 → 用整个月天数
+                            // If the current month is after the creation month → Use the total number of days in the month
                             else -> daysInMonth
                         }
                     }
 
-                    val targetDaysFinal = targetDays  // 闭包里用的 final 变量
+                    val targetDaysFinal = targetDays
 
                     db.collection("users")
                         .document(user.uid)
@@ -340,12 +318,12 @@ class MyPage : AppCompatActivity() {
                         .collection("checkins")
                         .get()
                         .addOnSuccessListener { checkinsSnapshot ->
-                            // ③ 只统计本月的打卡次数
+                            // Only count the number of check-ins for this month
                             val currentMonthPrefix = String.format(
                                 Locale.getDefault(),
                                 "%04d-%02d",
                                 currentYear,
-                                currentMonth + 1 // Calendar.MONTH 是 0~11
+                                currentMonth + 1 // Calendar.MONTH is 0~11
                             )
 
                             val thisMonthCheckins = checkinsSnapshot.documents.count {
@@ -353,7 +331,7 @@ class MyPage : AppCompatActivity() {
                                 d.startsWith(currentMonthPrefix)
                             }
 
-                            // ④ 计算百分比：本月完成天数 / targetDays
+                            // Calculate percentage: Days completed this month / targetDays
                             val rate = if (targetDaysFinal > 0) {
                                 (thisMonthCheckins * 100) / targetDaysFinal
                             } else {
@@ -382,8 +360,6 @@ class MyPage : AppCompatActivity() {
 
     private fun loadMoodOfTheMonth() {
         val user = auth.currentUser ?: return
-
-        // 현재 년/월 구하기
         val currentCal = Calendar.getInstance()
         val yearNow = currentCal.get(Calendar.YEAR)
         val monthNow = currentCal.get(Calendar.MONTH)
@@ -412,13 +388,13 @@ class MyPage : AppCompatActivity() {
 
                     val c = Calendar.getInstance().apply { time = date }
 
-                    // 이번 달 데이터만 집계
+                    // Aggregate only this month's data
                     if (c.get(Calendar.YEAR) == yearNow && c.get(Calendar.MONTH) == monthNow) {
                         counts[mood - 1]++
                     }
                 }
 
-                // 제일 많이 나온 기분 찾기
+                //the most common mood
                 var maxIndex = -1
                 var maxCount = 0
 
@@ -430,7 +406,6 @@ class MyPage : AppCompatActivity() {
                 }
 
                 if (maxIndex != -1) {
-                    // MoodStatistics와 동일한 이모지/이름
                     val emojiList = listOf("\uD83D\uDE2D", "😔", "😐", "😊", "😍")
                     val nameList = listOf("Bad", "Sad", "Neutral", "Good", "Very Good")
 

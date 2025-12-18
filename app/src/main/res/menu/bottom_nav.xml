@@ -9,14 +9,12 @@
         android:title="Mood"
         app:showAsAction="always" />
 
-    <!-- 가운데는 비워둠 (FAB가 들어갈 자리) -->
     <item
         android:id="@+id/home_page"
         android:icon="@drawable/home"
         android:title="Home"
         app:showAsAction="always" />
 
-    <!-- 오른쪽: 프로필 -->
     <item
         android:id="@+id/menu_profile"
         android:contentDescription="Profile"

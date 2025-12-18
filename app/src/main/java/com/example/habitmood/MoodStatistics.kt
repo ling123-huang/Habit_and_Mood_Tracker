@@ -50,7 +50,7 @@ class MoodStatistics : AppCompatActivity() {
     private val recordedDates: MutableMap<String, String> = mutableMapOf()
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
-    private val emojiList = listOf("😢", "😔", "😐", "😊", "😍")//추가
+    private val emojiList = listOf("😢", "😔", "😐", "😊", "😍")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,7 +66,7 @@ class MoodStatistics : AppCompatActivity() {
 
         updateMonthTitle()
 
-        // RecyclerView 설정 (7열 그리드)
+        // RecyclerView setting
         calendarRecyclerView.layoutManager = GridLayoutManager(this, 7)
 
         loadMoodsForAllTimeThenUpdate()
@@ -149,8 +149,6 @@ class MoodStatistics : AppCompatActivity() {
                 recordedDates.clear()
                 for (doc in snapshot) {
                     val dateStr = doc.getString("date") ?: continue
-
-                    // [수정] 기분 숫자(1~5)를 가져와서 이모티콘으로 변환하여 저장
                     val moodVal = doc.getLong("mood")?.toInt() ?: 0
                     if (moodVal in 1..5) {
                         recordedDates[dateStr] = emojiList[moodVal - 1]
@@ -238,7 +236,6 @@ class MoodStatistics : AppCompatActivity() {
     }
 
     private fun updateCalendar(docs: List<com.google.firebase.firestore.DocumentSnapshot>?) {
-        // 更新顶部月份文字
         updateMonthTitle()
 
         val days = generateCalendarDays()
@@ -266,27 +263,25 @@ class MoodStatistics : AppCompatActivity() {
 
         docRef.get().addOnSuccessListener { document ->
             val existingMood = document.getLong("mood")?.toInt() ?:0  // 1~5
-            //체크 안된 날은 다이어그램 표시 X
+            //Days that are not checked will not be marked on the diagram
             if (existingMood !in 1..5) {
                 return@addOnSuccessListener
             }
             val existingNote = document.getString("note") ?: ""
             val dialogView = layoutInflater.inflate(R.layout.dialog_view_mood, null)
-
-            // View 찾기
             val tvDate = dialogView.findViewById<TextView>(R.id.tvDialogDate)
             val tvMood = dialogView.findViewById<TextView>(R.id.tvDialogMoodEmoji)
             val tvNote = dialogView.findViewById<TextView>(R.id.tvDialogNote)
 
-            tvDate.text = dateKey // 날짜 표시
+            tvDate.text = dateKey
 
-            tvMood.text = emojiList[existingMood - 1] // 위에서 검사했으므로 안전함
+            tvMood.text = emojiList[existingMood - 1]
             tvNote.text = if (existingNote.isNotEmpty()) existingNote else "No note recorded."
 
 
-            // 다이얼로그 생성 및 표시
+            // Create and display dialog
             val builder = AlertDialog.Builder(this)
-                .setView(dialogView) // 커스텀 레이아웃 설정
+                .setView(dialogView) // Custom Layout Settings
 
             val dialog = builder.create()
             dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -300,7 +295,7 @@ class MoodStatistics : AppCompatActivity() {
 
         tempCalendar.set(Calendar.DAY_OF_MONTH, 1)
 
-        val firstDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK) // 1(일) ~ 7(토)
+        val firstDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK)
         val maxDayOfMonth = tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
         for (i in 1 until firstDayOfWeek) {
@@ -323,7 +318,7 @@ class MoodStatistics : AppCompatActivity() {
                 isCurrentMonth = true,
                 isChecked = isRecorded,
                 date = dateKey,
-                moodEmoji = emoji // 여기서 이모티콘을 어댑터로 보냄
+                moodEmoji = emoji //Send the emoji here via the adapter
             ))
         }
 

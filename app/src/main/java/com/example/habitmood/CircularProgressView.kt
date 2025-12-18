@@ -49,7 +49,7 @@ class CircularProgressView @JvmOverloads constructor(
             diameter - padding
         )
 
-        // 배경 원 그리기
+        // Draw background circle
         canvas.drawCircle(
             width / 2f,
             height / 2f,
@@ -57,11 +57,11 @@ class CircularProgressView @JvmOverloads constructor(
             backgroundPaint
         )
 
-        // 진행률 원호 그리기
+        // Draw progress arc
         val sweepAngle = (progress / maxProgress) * 360f
         canvas.drawArc(
             rect,
-            -90f, // 12시 방향부터 시작
+            -90f,
             sweepAngle,
             false,
             progressPaint

@@ -31,7 +31,6 @@ class MonthlyDetail : AppCompatActivity() {
     private val calendar = Calendar.getInstance()
     private val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.ENGLISH)
 
-    // 체크된 날짜들 (Firebase에서 가져올 데이터)
     private val checkedDates = mutableSetOf<String>()
     private var selectedDate: String = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
 
@@ -52,21 +51,18 @@ class MonthlyDetail : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        // View 초기화
         initViews()
 
-        //Log.d("MonthlyDetail", "Views initialized")
-
-        // RecyclerView 설정 (7열 그리드)
+        // RecyclerView Setup (7-Column Grid)
         calendarRecyclerView.layoutManager = GridLayoutManager(this, 7)
 
-        // Intent에서 습관 이름 & ID 받기
+        // Get habit name & ID from Intent
         val habitName = intent.getStringExtra("HABIT_NAME") ?: "Habit"
         habitId = intent.getStringExtra("HABIT_ID")
-        habitCreatedDate = intent.getStringExtra("HABIT_CREATED_DATE")   // 新增
+        habitCreatedDate = intent.getStringExtra("HABIT_CREATED_DATE")
         tvHabitTitle.text = habitName
 
-        // 현재 달의 체크 데이터 로드 + 달력 표시
+        // Load current month's check data + display calendar
         loadCheckedDatesForCurrentMonth()
         setupListeners()
     }
@@ -86,24 +82,20 @@ class MonthlyDetail : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        // 이전 달 버튼
         btnPrevMonth.setOnClickListener {
             calendar.add(Calendar.MONTH, -1)
             loadCheckedDatesForCurrentMonth()
         }
 
-        // 다음 달 버튼
         btnNextMonth.setOnClickListener {
             calendar.add(Calendar.MONTH, 1)
             loadCheckedDatesForCurrentMonth()
         }
 
-        // 뒤로가기 버튼
         btnBack.setOnClickListener {
             finish()
         }
 
-        // Complete 버튼: 오늘 날짜 토글
         btnComplete.setOnClickListener {
             toggleCheckForDate(selectedDate)
         }
@@ -113,17 +105,16 @@ class MonthlyDetail : AppCompatActivity() {
         val user = auth.currentUser
         val localHabitId = habitId
 
-        // 우선 화면의 월/년 표시 및 기존 체크 상태 초기화
+        // reset the month/year display on the screen and the existing check status
         checkedDates.clear()
         updateCalendar()
 
         if (user == null || localHabitId == null) {
-            // 로그인 안 되어 있으면 로컬 표시만
             updateStatistics()
             return
         }
 
-        // 이번 달의 시작/끝 날짜 문자열 계산
+        // Calculating the start/end date strings of this month
         val tempStart = calendar.clone() as Calendar
         tempStart.set(Calendar.DAY_OF_MONTH, 1)
 
@@ -134,7 +125,7 @@ class MonthlyDetail : AppCompatActivity() {
         val startKey = keyFormat.format(tempStart.time)
         val endKey = keyFormat.format(tempEnd.time)
 
-        // 현재 월의 체크인 데이터만 가져오기
+        //Retrieve check-in data for the current month only
         db.collection("users")
             .document(user.uid)
             .collection("habits")
@@ -153,7 +144,7 @@ class MonthlyDetail : AppCompatActivity() {
                 updateCompleteButtonText()
             }
 
-        // 전체 누적 횟수를 위한 별도 쿼리
+        // Separate query for total cumulative count
         loadTotalCheckCount()
     }
 
@@ -241,7 +232,7 @@ class MonthlyDetail : AppCompatActivity() {
             }
         }
 
-        // ── 3. 算百分比，并限制 0~100% ────────────────────────────
+        //Calculate percentage and limit it to 0~100%
         val percentage = if (targetDays > 0) {
             val raw = monthCheckCount.toFloat() / targetDays.toFloat() * 100f
             raw.coerceIn(0f, 100f).toInt()
@@ -260,12 +251,11 @@ class MonthlyDetail : AppCompatActivity() {
     }
 
 
-    // 날짜 하나를 Firebase에 토글 저장하는 함수
+    // A function that toggles and saves a date in Firebase
     private fun toggleCheckForDate(dateKey: String) {
         val user = auth.currentUser
         val localHabitId = habitId
 
-        // 로그인/ID 없으면 로컬 세트만 토글
         if (user == null || localHabitId == null) {
             if (checkedDates.contains(dateKey)) {
                 checkedDates.remove(dateKey)
@@ -285,7 +275,6 @@ class MonthlyDetail : AppCompatActivity() {
             .document(dateKey)
 
         if (checkedDates.contains(dateKey)) {
-            // 이미 체크되어 있으면 삭제
             docRef.delete()
                 .addOnSuccessListener {
                     checkedDates.remove(dateKey)
@@ -295,7 +284,6 @@ class MonthlyDetail : AppCompatActivity() {
                     updateCompleteButtonText()
                 }
         } else {
-            // 없으면 새로 생성
             val data = hashMapOf(
                 "date" to dateKey,
                 "timestamp" to FieldValue.serverTimestamp()
@@ -311,20 +299,16 @@ class MonthlyDetail : AppCompatActivity() {
         }
     }
 
-    // 달력 전체를 다시 그리는 함수
+    // redraws the entire calendar
     private fun updateCalendar() {
-        // 월/년 표시 업데이트
         tvMonthYear.text = dateFormat.format(calendar.time)
 
-        // 달력 날짜 생성
         val days = generateCalendarDays()
 
         Log.d("MonthlyDetail", "Generated ${days.size} days")
         Log.d("MonthlyDetail", "First day: ${days.firstOrNull()}")
 
-        // 어댑터 설정
         val adapter = CalendarDayAdapter(days, selectedDate) { day ->
-            // [수정] isAvailable 조건 추가: 미래 날짜나 생성일 이전 날짜는 선택 불가
             if (day.date.isNotBlank() && day.isAvailable) {
                 selectedDate = day.date
                 updateCompleteButtonText()
@@ -338,21 +322,15 @@ class MonthlyDetail : AppCompatActivity() {
 
     private fun generateCalendarDays(): List<CalendarDay> {
         val days = mutableListOf<CalendarDay>()
-
-        // 현재 달의 1일로 설정
         val tempCalendar = calendar.clone() as Calendar
         tempCalendar.set(Calendar.DAY_OF_MONTH, 1)
 
         val year = tempCalendar.get(Calendar.YEAR)
         val month = tempCalendar.get(Calendar.MONTH)
-
-        // 이번 달의 첫 날 요일 (일요일=1, 월요일=2, ...)
         val firstDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK)
-
-        // 이번 달의 마지막 날
         val maxDayOfMonth = tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-        // 오늘 날짜 준비
+        // Prepare today's date
         val today = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
@@ -360,7 +338,7 @@ class MonthlyDetail : AppCompatActivity() {
             set(Calendar.MILLISECOND, 0)
         }
 
-        // 습관 생성일 준비
+        // Prepare habit creation date
         var createdCal: Calendar? = null
         val createdStr = habitCreatedDate // "yyyy.MM.dd" format
         if (!createdStr.isNullOrEmpty()) {
@@ -385,39 +363,39 @@ class MonthlyDetail : AppCompatActivity() {
             "Year: $year, Month: $month, FirstDay: $firstDayOfWeek, MaxDay: $maxDayOfMonth"
         )
 
-        // 이전 달의 빈 칸 추가
+        // Add blank from the previous month
         for (i in 1 until firstDayOfWeek) {
             days.add(CalendarDay(0, false, false, null, "", false, false))
         }
 
-        // 이번 달의 날짜 추가
+        // Add the date for this month
         val dateFormatKey = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
         for (day in 1..maxDayOfMonth) {
             tempCalendar.set(Calendar.DAY_OF_MONTH, day)
 
-            // 현재 날짜를 자정 기준으로 정규화
+            // Normalize the current date to midnight
             val currentDayStart = tempCalendar.clone() as Calendar
             currentDayStart.set(Calendar.HOUR_OF_DAY, 0)
             currentDayStart.set(Calendar.MINUTE, 0)
             currentDayStart.set(Calendar.SECOND, 0)
             currentDayStart.set(Calendar.MILLISECOND, 0)
 
-            // 미래 날짜 확인 (오늘 자정 이후)
+            // Check future date (after midnight today)
             val isFuture = currentDayStart.after(today)
 
-            // 생성일 이전 날짜 확인
+            //Check the date before creation
             var isBeforeCreation = false
             if (createdCal != null) {
                 isBeforeCreation = currentDayStart.before(createdCal)
             }
 
-            // 이용 가능 여부: 생성일 이후 && 오늘 이전/오늘
+            // Availability: After creation date && before/today
             val isAvailable = !isFuture && !isBeforeCreation
 
             val dateKey = dateFormatKey.format(tempCalendar.time)
             val isChecked = checkedDates.contains(dateKey)
 
-            // 생성일 이전 날짜도 표시하되 연한 회색으로
+            // Also display dates before the creation date, but in light gray
             days.add(
                 CalendarDay(
                     dayNumber = day,
@@ -431,8 +409,7 @@ class MonthlyDetail : AppCompatActivity() {
             )
         }
 
-        // 다음 달의 빈 칸 추가 (6주 채우기)
-        val remainingDays = 42 - days.size // 6주 * 7일 = 42칸
+        val remainingDays = 42 - days.size
         for (i in 1..remainingDays) {
             days.add(CalendarDay(0, false, false, null, "", false, false))
         }
@@ -442,11 +419,11 @@ class MonthlyDetail : AppCompatActivity() {
 
     private fun updateCompleteButtonText() {
         if (checkedDates.contains(selectedDate)) {
-            // 이미 체크된 날짜라면 'Undo'& 회색 버튼
+            // If the date is not checked, 'Undo' & gray button
             btnComplete.text = "Undo"
             btnComplete.backgroundTintList = getColorStateList(android.R.color.darker_gray)
         } else {
-            // 체크 안 된 날짜라면 'Complete' & 초록색 버튼
+            // If the date is not checked, 'Complete' & the green button
             btnComplete.text = "Complete"
             btnComplete.backgroundTintList = getColorStateList(R.color.green)
         }

@@ -24,7 +24,7 @@ class AddHabitActivity : AppCompatActivity() {
     private lateinit var tvTimePicker: TextView
     private lateinit var btnSaveHabit: Button
 
-    // 선택된 알람 시간
+    // Selected alarm time
     private var selectedHour = 9
     private var selectedMinute = 0
 
@@ -32,15 +32,15 @@ class AddHabitActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_habit)
 
-        // View 초기화
+        // View Initialization
         initViews()
 
-        // Toolbar 설정
+        // Toolbar setting
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         toolbar.setNavigationOnClickListener { finish() }
 
-        // 리스너 설정
+        // listener setting
         setupListeners()
     }
 
@@ -54,7 +54,7 @@ class AddHabitActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        // 알람 스위치 동작 (시간 설정 보이기/숨기기)
+        // Alarm switch operation (Show/Hide time setting)
         switchAlarm.setOnCheckedChangeListener { _, isChecked ->
             layoutAlarmDetails.visibility = if (isChecked) {
                 View.VISIBLE
@@ -63,12 +63,12 @@ class AddHabitActivity : AppCompatActivity() {
             }
         }
 
-        // 시간 선택기
+        // Time Picker
         tvTimePicker.setOnClickListener {
             showTimePicker()
         }
 
-        // 저장 버튼
+        // save button
         btnSaveHabit.setOnClickListener {
             saveHabit()
         }
@@ -86,7 +86,7 @@ class AddHabitActivity : AppCompatActivity() {
                 selectedHour = hourOfDay
                 selectedMinute = minute
 
-                // 시간 텍스트 업데이트 (AM/PM 포맷)
+                // Time Text Update (AM/PM Format)
                 val amPm = if (hourOfDay < 12) "AM" else "PM"
                 val hour12 = if (hourOfDay > 12) {
                     hourOfDay - 12
@@ -100,7 +100,7 @@ class AddHabitActivity : AppCompatActivity() {
             },
             currentHour,
             currentMinute,
-            false // false = AM/PM 모드
+            false // false = AM/PM mode
         )
 
         timeDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -110,7 +110,7 @@ class AddHabitActivity : AppCompatActivity() {
     private fun saveHabit() {
         val habitName = etHabitName.text.toString().trim()
 
-        // 습관 이름 검증
+        // Habit Name Validation
         if (habitName.isEmpty()) {
             Toast.makeText(this, "Please enter habit name", Toast.LENGTH_SHORT).show()
             return
@@ -119,7 +119,7 @@ class AddHabitActivity : AppCompatActivity() {
         val resultIntent = Intent().apply {
             putExtra("NEW_HABIT_NAME", habitName)
 
-            // 알람이 켜져있다면 추가 정보도 보냄
+            // If the alarm is on, it also sends additional information
             if (switchAlarm.isChecked) {
                 putExtra("IS_ALARM_ON", true)
                 putExtra("ALARM_HOUR", selectedHour)

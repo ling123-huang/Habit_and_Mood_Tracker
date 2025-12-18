@@ -43,7 +43,7 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- 월별 통계 카드 -->
+            <!-- Monthly Statistics Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -60,7 +60,6 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <!-- 월 선택 -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -105,7 +104,7 @@
                         android:textColor="@color/black"
                         android:layout_marginBottom="16dp"/>
 
-                    <!-- 기분별 퍼센티지 -->
+                    <!-- Percentage by mood -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -410,7 +409,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 달력 형식 기분 기록 -->
+            <!-- Calendar-style mood tracking -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -428,7 +427,7 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 메모 보기 다이얼로그 트리거용 텍스트 -->
+            <!-- Text for triggering the memo view dialog -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -441,7 +440,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- 하단 바 -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
